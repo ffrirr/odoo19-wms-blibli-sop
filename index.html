@@ -1,18 +1,23 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>SOP Odoo 19 ERP — WMS Multi-Warehouse, Procurement & Blibli Omnichannel</title>
-  <meta name="description" content="Standar Operasional Prosedur (SOP) Odoo 19 ERP: WMS DC & DS, Procurement, Kontrol Stok & Integrasi Marketplace Blibli">
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <title>SOP Odoo 19 ERP — WMS DC, Toko & Omnichannel Blibli</title>
+  <meta name="description" content="Standar Operasional Prosedur (SOP) Lapangan Odoo 19 ERP untuk Warehouse DC, Toko Distribusi, dan Integrasi Marketplace Blibli">
+
   <!-- PWA Meta Tags -->
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <meta name="theme-color" content="#714B67">
+  <meta name="theme-color" content="#5b3852">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Odoo 19 SOP">
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -22,449 +27,894 @@
     tailwind.config = {
       theme: {
         extend: {
+          fontFamily: {
+            display: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
           colors: {
             odoo: {
-              purple: '#714B67',
-              teal: '#017E84',
-              dark: '#1e293b',
-              light: '#f8fafc'
+              purple: '#5b3852',
+              'purple-dark': '#44273c',
+              'purple-light': '#714b67',
+              teal: '#017e84',
+              'teal-dark': '#015f64',
+              accent: '#f59e0b',
             }
           }
         }
       }
     }
-    mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    mermaid.initialize({ 
+      startOnLoad: true, 
+      theme: 'neutral',
+      fontFamily: 'Inter',
+      flowchart: { curve: 'basis', htmlLabels: true }
+    });
   </script>
+
   <style>
-    .step-card { transition: all 0.2s ease-in-out; }
-    .step-card:hover { transform: translateY(-2px); }
+    /* Hallmark & UI/UX Pro Max Layout Safety */
+    html, body {
+      overflow-x: clip;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+
+    /* Roman headers globally per Hallmark gate 38a (no italic headings) */
+    h1, h2, h3, h4, h5, h6 {
+      font-style: normal !important;
+      letter-spacing: -0.02em;
+    }
+
+    /* Smooth accordion transition */
+    .step-content {
+      transition: max-height 0.25s ease-out, opacity 0.2s ease-out;
+    }
+
+    /* Print styles */
     @media print {
       .no-print { display: none !important; }
       body { background: #fff !important; color: #000 !important; }
-      .step-card { box-shadow: none !important; border: 1px solid #ccc !important; break-inside: avoid; }
+      .step-card { box-shadow: none !important; border: 1px solid #cbd5e1 !important; break-inside: avoid; margin-bottom: 12px !important; }
+      .step-content { display: block !important; max-height: none !important; opacity: 1 !important; }
     }
+
+    /* Custom scrollbar for horizontal chip nav */
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased flex flex-col min-h-screen">
+<body class="font-sans antialiased min-h-screen flex flex-col selection:bg-purple-100 selection:text-odoo-purple">
 
   <!-- OFFLINE STATUS BANNER -->
-  <div id="offlineBanner" class="hidden bg-amber-500 text-slate-900 font-semibold text-xs py-2 px-4 text-center shadow-inner flex items-center justify-center gap-2">
-    <i class="fa-solid fa-plane-slash"></i>
-    <span><strong>Mode Offline Aktif:</strong> Seluruh panduan SOP Odoo 19 tersimpan lokal dan siap digunakan tanpa koneksi internet.</span>
+  <div id="offlineBanner" class="hidden bg-amber-500 text-slate-950 font-semibold text-xs py-2 px-4 text-center shadow-sm flex items-center justify-center gap-2 sticky top-0 z-50">
+    <i class="fa-solid fa-cloud-slash text-sm"></i>
+    <span><strong>Mode Luar Jaringan (Offline):</strong> Anda tetap bisa mengakses seluruh prosedur SOP ini tanpa koneksi internet.</span>
   </div>
 
-  <!-- TOP NAVBAR -->
-  <header class="bg-odoo-purple text-white shadow-md sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <img src="icons/icon-192.png" alt="Odoo 19 Logo" class="w-9 h-9 rounded-lg shadow-sm">
-        <div>
-          <h1 class="text-base sm:text-lg font-bold tracking-tight">Odoo 19 SOP Portal</h1>
-          <p class="text-xs text-purple-200">WMS DC & DS • Procurement • Omnichannel Blibli</p>
+  <!-- TOP APP HEADER -->
+  <header class="bg-odoo-purple text-white shadow-sm sticky top-0 z-40 border-b border-purple-900/40">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+      
+      <!-- Brand & Version -->
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center shrink-0 shadow-inner">
+          <span class="font-display font-extrabold text-sm text-white">O19</span>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <h1 class="font-display font-bold text-sm sm:text-base tracking-tight truncate">SOP Lapangan Odoo 19</h1>
+            <span class="hidden sm:inline-flex text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              Verified
+            </span>
+          </div>
+          <p class="text-[11px] text-purple-200 truncate">WMS DC • Suplai Toko • Blibli Omnichannel</p>
         </div>
       </div>
 
-      <div class="flex items-center space-x-2 sm:space-x-3">
-        <!-- PWA Install Button (Hidden until prompt available) -->
-        <button id="pwaInstallBtn" class="hidden no-print text-xs bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold px-3 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1.5">
-          <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Install PWA</span>
+      <!-- Header Actions (Touch targets min 44x44px) -->
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        
+        <!-- PWA Install Button -->
+        <button id="pwaInstallBtn" class="hidden no-print h-10 px-3 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-900 font-bold text-xs rounded-lg shadow-sm transition flex items-center gap-1.5" aria-label="Pasang Aplikasi PWA">
+          <i class="fa-solid fa-download"></i>
+          <span class="hidden md:inline">Pasang PWA</span>
         </button>
 
-        <a href="PANDUAN_OPERASIONAL_ODOO_WMS_SALES_PURCHASE.md" target="_blank" class="no-print text-xs bg-white/10 hover:bg-white/20 text-white font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1">
-          <i class="fa-solid fa-file-code"></i> <span class="hidden sm:inline">Raw Markdown</span>
-        </a>
-        <button onclick="window.print()" class="no-print text-xs bg-white text-odoo-purple font-semibold px-3 py-1.5 rounded-lg shadow-sm hover:bg-purple-50 transition flex items-center gap-1.5">
-          <i class="fa-solid fa-print"></i> <span>Cetak</span>
+        <!-- Print Button -->
+        <button onclick="window.print()" class="no-print h-10 px-3 bg-white/10 hover:bg-white/20 active:scale-95 text-white text-xs font-medium rounded-lg transition flex items-center gap-1.5" title="Cetak atau Simpan PDF" aria-label="Cetak SOP">
+          <i class="fa-solid fa-print"></i>
+          <span class="hidden sm:inline">Cetak</span>
         </button>
-        <span class="text-xs bg-emerald-500 text-white font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
-          <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> PWA Ready
-        </span>
+
+        <!-- Markdown Document Link -->
+        <a href="PANDUAN_OPERASIONAL_ODOO_WMS_SALES_PURCHASE.md" target="_blank" class="no-print h-10 px-2.5 bg-white/10 hover:bg-white/20 active:scale-95 text-white text-xs font-medium rounded-lg transition flex items-center gap-1" title="Buka Dokumen Markdown" aria-label="Raw Markdown">
+          <i class="fa-solid fa-file-lines"></i>
+          <span class="hidden md:inline">Markdown</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ODOO 19 COMMAND PALETTE TIP (Collapsible on mobile) -->
+    <div class="no-print bg-odoo-purple-dark text-purple-200 text-xs px-3 sm:px-6 py-1.5 border-t border-purple-900/50 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 truncate">
+        <i class="fa-solid fa-keyboard text-amber-400 text-xs shrink-0"></i>
+        <span class="truncate"><strong>Odoo 19 Tip:</strong> Tekan <kbd class="px-1.5 py-0.5 bg-purple-950 border border-purple-800 rounded font-mono text-[10px] text-white">Ctrl + K</kbd> untuk lompat ke menu mana saja.</span>
+      </div>
+      <div class="shrink-0 text-[11px] font-mono text-purple-300 hidden sm:block">
+        Single Source of Truth
       </div>
     </div>
   </header>
 
-  <!-- ODOO 19 SHORTCUT INFO BAR -->
-  <div class="no-print bg-purple-900/90 text-purple-100 text-xs py-2 px-4 text-center border-b border-purple-800 flex items-center justify-center gap-2 flex-wrap">
-    <span>💡 <strong>Tips Efisiensi Odoo 19:</strong> Tekan <kbd class="px-1.5 py-0.5 bg-purple-800 border border-purple-600 rounded font-mono text-[11px] text-white">Ctrl + K</kbd> atau <kbd class="px-1.5 py-0.5 bg-purple-800 border border-purple-600 rounded font-mono text-[11px] text-white">Cmd + K</kbd> untuk membuka <em>Command Palette</em> & lompat cepat ke menu dokumen mana saja!</span>
+  <!-- MOBILE-FIRST STICKY SUB-NAV (Horizontal Scroll Chip Bar) -->
+  <div class="no-print sticky top-16 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 py-2.5 px-3 sm:px-6 shadow-xs">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+      
+      <!-- Horizontal Scrollable Navigation Pills -->
+      <nav class="flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-0.5 text-xs font-medium text-slate-600">
+        <a href="#diagram" class="shrink-0 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-purple-50 hover:text-odoo-purple transition flex items-center gap-1.5">
+          <i class="fa-solid fa-diagram-project text-slate-400"></i>
+          <span>Peta Alur</span>
+        </a>
+        <a href="#fase-0" class="shrink-0 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-purple-50 hover:text-odoo-purple transition">
+          Fase 0: Setup
+        </a>
+        <a href="#fase-1" class="shrink-0 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-purple-50 hover:text-odoo-purple transition">
+          Fase 1: DC Inbound
+        </a>
+        <a href="#fase-2" class="shrink-0 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-purple-50 hover:text-odoo-purple transition">
+          Fase 2: Suplai Toko
+        </a>
+        <a href="#fase-3" class="shrink-0 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-purple-50 hover:text-odoo-purple transition">
+          Fase 3: Blibli Order
+        </a>
+        <a href="#fase-4" class="shrink-0 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-purple-50 hover:text-odoo-purple transition">
+          Fase 4: Delivered
+        </a>
+        <a href="#fase-5" class="shrink-0 px-3 py-1.5 rounded-full bg-rose-50 text-rose-700 hover:bg-rose-100 transition">
+          Fase 5: Retur & Opname
+        </a>
+      </nav>
+
+      <!-- Expand/Collapse All Toggle for Operator Convenience -->
+      <button onclick="toggleAllSteps()" id="toggleAllBtn" class="shrink-0 text-xs text-odoo-purple hover:underline font-semibold flex items-center gap-1 px-2 py-1" aria-label="Buka atau tutup seluruh kartu">
+        <i class="fa-solid fa-angles-down text-[11px]" id="toggleAllIcon"></i>
+        <span id="toggleAllText" class="hidden sm:inline">Buka Semua</span>
+      </button>
+    </div>
   </div>
 
-  <!-- MAIN CONTAINER -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 flex flex-col md:flex-row gap-8">
+  <!-- MAIN VIEWPORT CONTAINER -->
+  <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col lg:flex-row gap-6">
 
-    <!-- SIDEBAR NAVIGATION -->
-    <aside class="no-print w-full md:w-72 shrink-0">
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sticky top-28 space-y-4">
-        <div class="relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
-          <input type="text" id="searchInput" onkeyup="filterSteps()" placeholder="Cari langkah, menu, status..." 
-            class="w-full pl-9 pr-3 py-2 bg-slate-50 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-odoo-purple">
-        </div>
-
+    <!-- DESKTOP STICKY SIDEBAR (Search, Progress, Quick Nav) -->
+    <aside class="no-print w-full lg:w-72 shrink-0 hidden lg:block">
+      <div class="bg-white rounded-xl border border-slate-200/80 p-4 sticky top-36 space-y-5 shadow-xs">
+        
+        <!-- Live Search Field -->
         <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Daftar Fase Alur</p>
-          <nav class="space-y-1 text-sm font-medium">
-            <a href="#diagram" class="flex items-center justify-between px-3 py-2 text-slate-700 rounded-lg hover:bg-purple-50 hover:text-odoo-purple transition">
-              <span><i class="fa-solid fa-diagram-project w-5 text-slate-400"></i> Diagram Alur Sistem</span>
-            </a>
-            <a href="#fase-0" class="flex items-center justify-between px-3 py-2 text-slate-700 rounded-lg hover:bg-purple-50 hover:text-odoo-purple transition">
-              <span><i class="fa-solid fa-sliders w-5 text-slate-400"></i> Fase 0: Setup Master</span>
-              <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">4 Step</span>
-            </a>
-            <a href="#fase-1" class="flex items-center justify-between px-3 py-2 text-slate-700 rounded-lg hover:bg-purple-50 hover:text-odoo-purple transition">
-              <span><i class="fa-solid fa-truck-ramp-box w-5 text-slate-400"></i> Fase 1: DC Receipts</span>
-              <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">3 Step</span>
-            </a>
-            <a href="#fase-2" class="flex items-center justify-between px-3 py-2 text-slate-700 rounded-lg hover:bg-purple-50 hover:text-odoo-purple transition">
-              <span><i class="fa-solid fa-arrows-split-up-and-left w-5 text-slate-400"></i> Fase 2: Suplai Toko (DS)</span>
-              <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">1 Step</span>
-            </a>
-            <a href="#fase-3" class="flex items-center justify-between px-3 py-2 text-slate-700 rounded-lg hover:bg-purple-50 hover:text-odoo-purple transition">
-              <span><i class="fa-solid fa-box-open w-5 text-slate-400"></i> Fase 3: Order & In-Transit</span>
-              <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">3 Step</span>
-            </a>
-            <a href="#fase-4" class="flex items-center justify-between px-3 py-2 text-slate-700 rounded-lg hover:bg-purple-50 hover:text-odoo-purple transition">
-              <span><i class="fa-solid fa-circle-check w-5 text-slate-400"></i> Fase 4: Final Delivered</span>
-              <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">2 Step</span>
-            </a>
-            <a href="#fase-5" class="flex items-center justify-between px-3 py-2 text-slate-700 rounded-lg hover:bg-purple-50 hover:text-odoo-purple transition">
-              <span><i class="fa-solid fa-triangle-exclamation w-5 text-slate-400"></i> Fase 5: Kasus Khusus</span>
-              <span class="text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">3 Case</span>
-            </a>
-          </nav>
+          <label for="searchInputDesktop" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+            Cari Prosedur
+          </label>
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs pointer-events-none"></i>
+            <input type="text" id="searchInputDesktop" onkeyup="filterSteps(this.value)" placeholder="Ketik kata kunci (e.g. resi, scrap, PO)..." 
+              class="w-full pl-8 pr-3 py-2 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-odoo-purple focus:bg-white transition">
+          </div>
+          <div id="searchResultsCount" class="text-[11px] text-slate-500 mt-1.5 font-medium hidden">
+            Ditemukan <span id="matchCount">0</span> langkah cocok.
+          </div>
         </div>
 
-        <div class="pt-4 border-t border-slate-100 space-y-2">
-          <div class="bg-purple-50 p-3 rounded-lg border border-purple-100 text-xs text-odoo-purple space-y-1">
-            <div class="font-bold flex items-center gap-1"><i class="fa-solid fa-mobile-screen-button"></i> PWA Offline Ready</div>
-            <p class="text-slate-600">Aplikasi web ini otomatis tersimpan di memori perangkat sehingga dapat diakses di area gudang tanpa internet.</p>
+        <!-- Progress Tracker Checklist -->
+        <div class="p-3 bg-purple-50/70 rounded-lg border border-purple-100/80 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-odoo-purple flex items-center gap-1.5">
+              <i class="fa-solid fa-list-check"></i> Progress Operasi
+            </span>
+            <span id="progressText" class="font-mono font-bold text-odoo-purple">0 / 14</span>
           </div>
-          <div class="bg-slate-100 p-3 rounded-lg text-xs text-slate-700 space-y-1">
-            <div class="font-bold flex items-center gap-1"><i class="fa-solid fa-book"></i> Odoo 19 Knowledge</div>
-            <p class="text-slate-600">Dapat disematkan langsung ke panel samping modul Knowledge di Odoo 19.</p>
+          <div class="w-full bg-purple-200/50 rounded-full h-2 overflow-hidden">
+            <div id="progressBar" class="bg-odoo-purple h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <p class="text-[11px] text-slate-600 leading-tight">Centang langkah yang telah Anda praktikan di Odoo 19.</p>
+        </div>
+
+        <!-- Desktop Quick Navigation List -->
+        <div class="space-y-1 text-xs font-medium">
+          <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Navigasi Fase</p>
+          <a href="#fase-0" class="flex items-center justify-between p-2 rounded-lg text-slate-700 hover:bg-slate-100 transition">
+            <span>0. Setup Master Data</span>
+            <span class="font-mono text-[11px] text-slate-400">4 Step</span>
+          </a>
+          <a href="#fase-1" class="flex items-center justify-between p-2 rounded-lg text-slate-700 hover:bg-slate-100 transition">
+            <span>1. Pengadaan & DC</span>
+            <span class="font-mono text-[11px] text-slate-400">3 Step</span>
+          </a>
+          <a href="#fase-2" class="flex items-center justify-between p-2 rounded-lg text-slate-700 hover:bg-slate-100 transition">
+            <span>2. Suplai Toko Cabang</span>
+            <span class="font-mono text-[11px] text-slate-400">1 Step</span>
+          </a>
+          <a href="#fase-3" class="flex items-center justify-between p-2 rounded-lg text-slate-700 hover:bg-slate-100 transition">
+            <span>3. Blibli Order & Kurir</span>
+            <span class="font-mono text-[11px] text-slate-400">3 Step</span>
+          </a>
+          <a href="#fase-4" class="flex items-center justify-between p-2 rounded-lg text-slate-700 hover:bg-slate-100 transition">
+            <span>4. Delivered & COGS</span>
+            <span class="font-mono text-[11px] text-slate-400">2 Step</span>
+          </a>
+          <a href="#fase-5" class="flex items-center justify-between p-2 rounded-lg text-slate-700 hover:bg-slate-100 transition">
+            <span>5. Retur, Cancel & Opname</span>
+            <span class="font-mono text-[11px] text-rose-500 font-bold">3 Case</span>
+          </a>
+        </div>
+
+        <!-- Odoo Knowledge Integration Tip -->
+        <div class="border-t border-slate-100 pt-3">
+          <div class="text-[11px] text-slate-500 space-y-1">
+            <span class="font-semibold text-slate-700 block">SOP Siap Kerja:</span>
+            <p>SOP ini dirancang langsung berdasarkan logika bisnis Odoo 19 dan alur 3PL marketplace Indonesia.</p>
           </div>
         </div>
+
       </div>
     </aside>
 
-    <!-- CONTENT AREA -->
-    <main class="flex-1 space-y-10" id="sopContent">
+    <!-- CONTENT STREAM (Mobile & Desktop) -->
+    <main class="flex-1 space-y-8 min-w-0" id="sopContent">
 
-      <!-- HERO BANNER -->
-      <section class="bg-gradient-to-r from-odoo-purple to-odoo-teal text-white p-6 sm:p-8 rounded-2xl shadow-sm">
-        <div class="max-w-3xl">
-          <span class="bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">PWA & Offline Enabled</span>
-          <h2 class="text-2xl sm:text-3xl font-bold mt-3 mb-2">Panduan Operasional Odoo 19 ERP Terpadu</h2>
-          <p class="text-sm text-purple-100 leading-relaxed">
-            Menghubungkan pengadaan barang pusat (DC), suplai ke toko distribusi (DS), penerimaan pesanan otomatis Blibli, pelacakan kurir In-Transit, hingga penanganan retur dan penyesuaian stok.
-          </p>
+      <!-- MOBILE SEARCH BAR (Visible only on mobile/tablet) -->
+      <div class="block lg:hidden no-print">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+          <input type="text" onkeyup="filterSteps(this.value)" placeholder="Cari langkah atau menu Odoo..." 
+            class="w-full pl-10 pr-4 py-2.5 bg-white text-sm rounded-xl border border-slate-200 shadow-xs focus:outline-none focus:ring-2 focus:ring-odoo-purple">
+        </div>
+      </div>
+
+      <!-- EDITORIAL HERO (Hallmark Anti-AI-Slop Tone) -->
+      <section class="bg-white p-5 sm:p-7 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          <span class="text-xs font-mono font-semibold uppercase tracking-wider text-slate-500">Petunjuk Teknis Lapangan</span>
+        </div>
+        <h2 class="font-display font-bold text-xl sm:text-2xl text-slate-900 leading-tight">
+          Alur Pengoperasian Terintegrasi Odoo 19 ERP
+        </h2>
+        <p class="text-sm text-slate-600 leading-relaxed max-w-3xl">
+          Panduan ini menguraikan setiap klik, menu, dan verifikasi stok untuk alur rantai pasok nyata: dari kedatangan barang supplier di Gudang Pusat (DC), pengiriman stok ke Toko Distribusi (DS), pesanan online Blibli, pelacakan kurir In-Transit, hingga penanganan retur fisik dan penyesuaian selisih harian.
+        </p>
+        <div class="flex flex-wrap gap-2 pt-1 text-xs text-slate-500">
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200/60 font-mono">
+            <i class="fa-solid fa-cube text-odoo-purple"></i> Single Source of Truth
+          </span>
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200/60 font-mono">
+            <i class="fa-solid fa-truck-fast text-odoo-teal"></i> Two-Step Blibli Delivery
+          </span>
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200/60 font-mono">
+            <i class="fa-solid fa-shield-check text-emerald-600"></i> Anti-Overselling Guard
+          </span>
         </div>
       </section>
 
-      <!-- MERMAID DIAGRAM -->
-      <section id="diagram" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+      <!-- INTERACTIVE MERMAID DIAGRAM -->
+      <section id="diagram" class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h3 class="font-bold text-slate-900 flex items-center gap-2">
-            <i class="fa-solid fa-network-wired text-odoo-teal"></i> Visualisasi Alur Terintegrasi Odoo 19
-          </h3>
-          <span class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded font-mono">End-to-End</span>
+          <div>
+            <h3 class="font-display font-bold text-base text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-network-wired text-odoo-teal"></i> Peta Alur Rantai Pasok Terpadu
+            </h3>
+            <p class="text-xs text-slate-500">Bagaimana barang bergerak di Odoo 19 dari supplier hingga ke tangan pembeli</p>
+          </div>
+          <span class="text-[11px] font-mono bg-slate-100 text-slate-600 px-2 py-1 rounded">Visual Map</span>
         </div>
         <div class="mermaid text-center overflow-x-auto py-2">
 graph LR
-    V[Vendor Pemasok] -->|1. PO & GR| DC[(Gudang Pusat DC)]
+    V[Pemasok / Vendor] -->|1. PO & Receipt| DC[(Gudang Pusat DC)]
     DC -->|2. Internal Transfer| DS[(Toko Distribusi DS)]
-    BLI[Pesanan Blibli] -->|3. Auto SO Webhook| DS
-    DS -->|4. Handover Kurir| TR[(Virtual: Blibli In-Transit)]
-    TR -->|5. Delivered| CUST[(Customer Location)]
-    TR -.->|Batal Kirim| DS
+    BLI[Pesanan Blibli] -->|3. Auto-SO Webhook| DS
+    DS -->|4. Serah Kurir| TR[(Virtual: Blibli In-Transit)]
+    TR -->|5. Kurir Delivered| CUST[(Customer Location)]
+    TR -.->|Gagal Antar| DS
     CUST -.->|6. Retur Pelanggan| RET{QC Toko}
     RET -->|Bagus| DS
-    RET -->|Cacat| SCRAP[(Virtual Scrap)]
+    RET -->|Rusak| SCRAP[(Virtual Scrap)]
         </div>
       </section>
 
-      <!-- FASE 0 -->
-      <section id="fase-0" class="fase-section space-y-4">
-        <div class="flex items-center gap-3 pb-2 border-b border-slate-200">
-          <span class="w-8 h-8 rounded-lg bg-purple-100 text-odoo-purple flex items-center justify-center font-bold text-sm">0</span>
-          <h3 class="text-xl font-bold text-slate-900">Fase 0: Setup & Master Data (Prerequisite)</h3>
+      <!-- ======================================================================= -->
+      <!-- FASE 0: SETUP & MASTER DATA                                             -->
+      <!-- ======================================================================= -->
+      <section id="fase-0" class="fase-section space-y-3 scroll-mt-28">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-purple-100 text-odoo-purple flex items-center justify-center font-display font-bold text-xs">0</span>
+            <h3 class="font-display font-bold text-lg text-slate-900">Fase 0: Setup & Master Data (Prerequisite)</h3>
+          </div>
+          <span class="text-xs text-slate-500 font-medium">4 Langkah</span>
         </div>
 
-        <div class="grid grid-cols-1 gap-4">
-          <!-- Step 0.1 -->
-          <div class="step-card bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-            <div class="flex items-start justify-between flex-wrap gap-2">
+        <!-- Step 0.1 -->
+        <div class="step-card bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden" data-step-id="0-1">
+          <div class="p-4 sm:p-5 flex items-start justify-between gap-3 cursor-pointer select-none" onclick="toggleStep('0-1')">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" onclick="event.stopPropagation(); updateProgress('0-1', this.checked)" class="step-checkbox mt-1 w-4 h-4 text-odoo-purple rounded border-slate-300 focus:ring-odoo-purple" title="Tandai Selesai">
               <div>
-                <span class="text-xs font-bold text-odoo-purple uppercase">Langkah 0.1</span>
-                <h4 class="text-base font-bold text-slate-900 mt-0.5">Registrasi Pemasok (Vendor Registration)</h4>
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-odoo-purple">Langkah 0.1</span>
+                <h4 class="font-display font-bold text-base text-slate-900 mt-0.5">Registrasi Pemasok (Vendor Registration)</h4>
               </div>
-              <span class="text-xs bg-purple-50 text-odoo-purple font-mono px-2.5 py-1 rounded border border-purple-100">Purchase > Orders > Vendors</span>
             </div>
-            <div class="mt-3 text-sm text-slate-600 space-y-2">
-              <p>Mendaftarkan vendor resmi di Odoo 19: klik <strong>New</strong>, pilih <strong>Company</strong>, isi nama PT, alamat, kontak, dan nomor <strong>NPWP (Tax ID)</strong>. Di tab <em>Sales & Purchase</em>, atur <strong>Payment Terms</strong> (misal <code>30 Days</code>).</p>
-              <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-lg text-xs text-emerald-900 mt-3">
-                <strong><i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Expected Result:</strong>
-                Kontak tersimpan dengan badge Vendor aktif. Smart button <code>Purchases (0)</code> dan <code>On-time Delivery Rate (100%)</code> muncul di kanan atas form Odoo 19.
-              </div>
+            <div class="flex items-center gap-2">
+              <span class="hidden sm:inline-flex text-xs bg-slate-100 text-slate-700 font-mono px-2 py-1 rounded border border-slate-200">Purchase > Orders > Vendors</span>
+              <button class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition" aria-label="Buka Rincian">
+                <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" id="icon-0-1"></i>
+              </button>
             </div>
           </div>
 
-          <!-- Step 0.2 -->
-          <div class="step-card bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <span class="text-xs font-bold text-odoo-purple uppercase">Langkah 0.2</span>
-                <h4 class="text-base font-bold text-slate-900 mt-0.5">Master Produk, SKU & Barcode (Single Source of Truth)</h4>
-              </div>
-              <span class="text-xs bg-purple-50 text-odoo-purple font-mono px-2.5 py-1 rounded border border-purple-100">Sales > Products > Products</span>
+          <div class="step-content px-4 sm:px-5 pb-5 pt-1 space-y-3 text-sm text-slate-700 border-t border-slate-100" id="content-0-1">
+            <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg text-xs font-mono text-slate-600">
+              <span>Menu: <strong>Purchase > Orders > Vendors</strong></span>
+              <button onclick="copyToClipboard('Purchase > Orders > Vendors', this)" class="text-odoo-purple hover:underline flex items-center gap-1 font-sans">
+                <i class="fa-regular fa-copy"></i> Salin Menu
+              </button>
             </div>
-            <div class="mt-3 text-sm text-slate-600 space-y-2">
-              <p>Membuat master SKU di Odoo 19: Wajib memilih tipe <strong>Storable Product</strong>, mengisi <strong>Internal Reference</strong> identik dengan Merchant SKU Blibli (e.g. <code>KOP-ARA-250</code>), barcode EAN-13, harga SRP normal Rp 95.000, dan pajak PPN 11%.</p>
-              <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-lg text-xs text-emerald-900 mt-3">
-                <strong><i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Expected Result:</strong>
-                Smart button produk di kanan atas menampilkan: <code>On Hand: 0.00 Units</code> dan <code>Forecasted: 0.00 Units</code>. Produk siap digunakan di modul Purchase, Inventory, dan Sales.
-              </div>
+            
+            <div class="space-y-2">
+              <p class="font-semibold text-slate-900">Langkah Operasional di Odoo 19:</p>
+              <ol class="list-decimal list-inside space-y-1.5 pl-1 text-slate-600">
+                <li>Klik tombol <strong>New</strong> di Action Bar Odoo 19.</li>
+                <li>Pilih tipe <strong>Company</strong> (untuk vendor berbadan hukum PT/CV).</li>
+                <li>Isi <strong>Name</strong>: <code>PT Supplier Utama Indonesia</code>.</li>
+                <li>Isi Alamat, Telepon, Email, dan nomor <strong>NPWP (Tax ID)</strong> untuk faktur pajak.</li>
+                <li>Tab <strong>Sales & Purchase</strong>: Atur <strong>Payment Terms</strong> = <code>30 Days</code>.</li>
+                <li>Tab <strong>Invoicing</strong>: Masukkan rekening bank vendor untuk pencairan pelunasan.</li>
+                <li>Klik ikon <strong>Save</strong>.</li>
+              </ol>
             </div>
-          </div>
 
-          <!-- Step 0.3 -->
-          <div class="step-card bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <span class="text-xs font-bold text-odoo-purple uppercase">Langkah 0.3</span>
-                <h4 class="text-base font-bold text-slate-900 mt-0.5">Konfigurasi Lokasi Virtual ("Blibli In-Transit")</h4>
+            <!-- Expected Result Box -->
+            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3.5 rounded-r-lg text-xs text-emerald-950 space-y-1">
+              <div class="font-bold flex items-center gap-1.5 text-emerald-900">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i> Expected Result (Verifikasi Sukses):
               </div>
-              <span class="text-xs bg-purple-50 text-odoo-purple font-mono px-2.5 py-1 rounded border border-purple-100">Inventory > Configuration > Locations</span>
-            </div>
-            <div class="mt-3 text-sm text-slate-600 space-y-2">
-              <p>Membuat lokasi virtual penampung paket kurir: Location Name = <code>Blibli In-Transit</code>, Parent Location = <code>Virtual Locations</code>, Location Type = <strong>Transit Location</strong> (atau <em>Internal Location</em> jika ingin persediaan tetap masuk neraca pembukuan).</p>
-              <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-lg text-xs text-emerald-900 mt-3">
-                <strong><i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Expected Result:</strong>
-                Terbentuk path lokasi <code>Virtual Locations/Blibli In-Transit</code> yang siap dipilih sebagai rute serah terima kurir toko.
-              </div>
-            </div>
-          </div>
-
-          <!-- Step 0.4 -->
-          <div class="step-card bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <span class="text-xs font-bold text-odoo-purple uppercase">Langkah 0.4</span>
-                <h4 class="text-base font-bold text-slate-900 mt-0.5">Penentuan Harga Promo Blibli (Pricelist)</h4>
-              </div>
-              <span class="text-xs bg-purple-50 text-odoo-purple font-mono px-2.5 py-1 rounded border border-purple-100">Sales > Products > Pricelists</span>
-            </div>
-            <div class="mt-3 text-sm text-slate-600 space-y-2">
-              <p>Buka pricelist <code>Pricelist Blibli Official Store</code>, tambahkan baris harga promo (Fixed Price: Rp 85.000) dan tentukan tanggal mulai & berakhirnya promo.</p>
-              <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-lg text-xs text-emerald-900 mt-3">
-                <strong><i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Expected Result:</strong>
-                Aturan harga promo aktif. API connector siap menarik nominal diskon ini untuk otomatis memperbarui harga listing di Blibli.
-              </div>
+              <p>Form vendor tersimpan rapi. Di pojok kanan atas form Odoo 19 muncul smart button <code>Purchases (0)</code> dan <code>On-time Delivery Rate (100%)</code>.</p>
             </div>
           </div>
         </div>
-      </section>
 
-      <!-- FASE 1 -->
-      <section id="fase-1" class="fase-section space-y-4">
-        <div class="flex items-center gap-3 pb-2 border-b border-slate-200">
-          <span class="w-8 h-8 rounded-lg bg-teal-100 text-odoo-teal flex items-center justify-center font-bold text-sm">1</span>
-          <h3 class="text-xl font-bold text-slate-900">Fase 1: Pengadaan & Penerimaan Gudang Pusat (DC)</h3>
-        </div>
-
-        <div class="grid grid-cols-1 gap-4">
-          <!-- Step 1.1 -->
-          <div class="step-card bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-            <div class="flex items-start justify-between flex-wrap gap-2">
+        <!-- Step 0.2 -->
+        <div class="step-card bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden" data-step-id="0-2">
+          <div class="p-4 sm:p-5 flex items-start justify-between gap-3 cursor-pointer select-none" onclick="toggleStep('0-2')">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" onclick="event.stopPropagation(); updateProgress('0-2', this.checked)" class="step-checkbox mt-1 w-4 h-4 text-odoo-purple rounded border-slate-300 focus:ring-odoo-purple" title="Tandai Selesai">
               <div>
-                <span class="text-xs font-bold text-odoo-teal uppercase">Langkah 1.1</span>
-                <h4 class="text-base font-bold text-slate-900 mt-0.5">Pembuatan & Konfirmasi Purchase Order (PO)</h4>
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-odoo-purple">Langkah 0.2</span>
+                <h4 class="font-display font-bold text-base text-slate-900 mt-0.5">Master SKU, Barcode & Bobot Paket (SSOT)</h4>
               </div>
-              <span class="text-xs bg-teal-50 text-odoo-teal font-mono px-2.5 py-1 rounded border border-teal-100">Purchase > Orders > RfQ</span>
             </div>
-            <div class="mt-3 text-sm text-slate-600 space-y-2">
-              <p>Pilih vendor, Deliver To = <code>DC/Receipts</code>, tambahkan produk 500 pcs @ Rp 55.000, lalu klik tombol <strong>Confirm Order</strong> pada Action Bar Odoo 19.</p>
-              <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-lg text-xs text-emerald-900 mt-3">
-                <strong><i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Expected Result:</strong>
-                Status PO berubah menjadi <strong>Purchase Order</strong>. Smart button <code>Receipt (1)</code> muncul di kanan atas form. Nilai <code>Forecasted</code> produk otomatis bertambah +500 unit.
-              </div>
+            <div class="flex items-center gap-2">
+              <span class="hidden sm:inline-flex text-xs bg-slate-100 text-slate-700 font-mono px-2 py-1 rounded border border-slate-200">Sales > Products > Products</span>
+              <button class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition" aria-label="Buka Rincian">
+                <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" id="icon-0-2"></i>
+              </button>
             </div>
           </div>
 
-          <!-- Step 1.2 -->
-          <div class="step-card bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <span class="text-xs font-bold text-odoo-teal uppercase">Langkah 1.2</span>
-                <h4 class="text-base font-bold text-slate-900 mt-0.5">Penerimaan Fisik di DC (Goods Receipt - GR / WH/IN)</h4>
-              </div>
-              <span class="text-xs bg-teal-50 text-odoo-teal font-mono px-2.5 py-1 rounded border border-teal-100">Inventory > Operations > Transfers</span>
+          <div class="step-content px-4 sm:px-5 pb-5 pt-1 space-y-3 text-sm text-slate-700 border-t border-slate-100" id="content-0-2">
+            <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg text-xs font-mono text-slate-600">
+              <span>Menu: <strong>Sales > Products > Products</strong></span>
+              <button onclick="copyToClipboard('Sales > Products > Products', this)" class="text-odoo-purple hover:underline flex items-center gap-1 font-sans">
+                <i class="fa-regular fa-copy"></i> Salin Menu
+              </button>
             </div>
-            <div class="mt-3 text-sm text-slate-600 space-y-2">
-              <p>Buka dokumen transfer penerimaan berstatus <strong>Ready</strong>. Hitung fisik muatan: klik <strong>Set Quantities</strong> jika penuh (atau ketik parsial di kolom <strong>Done</strong>), lalu klik <strong>Validate</strong>.</p>
-              <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-lg text-xs text-emerald-900 mt-3">
-                <strong><i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Expected Result:</strong>
-                Status dokumen menjadi <strong>Done</strong> (badge hijau). Stok fisik di <code>DC/Stock</code> bertambah menjadi 500 unit. Kolom Received di PO terisi otomatis 500.00.
-              </div>
+            
+            <div class="space-y-2">
+              <p class="font-semibold text-slate-900">Langkah Operasional di Odoo 19:</p>
+              <ol class="list-decimal list-inside space-y-1.5 pl-1 text-slate-600">
+                <li>Klik tombol <strong>New</strong>.</li>
+                <li><strong>Product Name</strong>: <code>Kopi Arabika Specialty 250g</code>.</li>
+                <li><strong>Product Type</strong>: Wajib pilih <strong>Storable Product</strong> (*Best Practice mutlak agar mutasi stok tercatat*).</li>
+                <li><strong>Internal Reference (SKU)</strong>: <code>KOP-ARA-250</code> (*Wajib identik karakter per karakter dengan Merchant SKU di Blibli*).</li>
+                <li><strong>Barcode</strong>: Scan barcode kemasan (e.g. <code>8991234567890</code>).</li>
+                <li><strong>Sales Price</strong>: Rp 95.000 (SRP normal), <strong>Taxes</strong>: PPN 11%, <strong>Cost</strong>: Rp 55.000.</li>
+                <li>Tab <strong>Inventory</strong>: Masukkan berat kemasan di <strong>Weight</strong> = <code>0.28 kg</code> untuk kalkulasi ongkos kirim kurir Blibli.</li>
+                <li>Klik <strong>Save</strong>.</li>
+              </ol>
             </div>
-          </div>
 
-          <!-- Step 1.3 -->
-          <div class="step-card bg-slate-50 p-5 rounded-xl border border-slate-200 shadow-sm">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <span class="text-xs font-bold text-amber-600 uppercase">Opsi Cabang 1.3</span>
-                <h4 class="text-base font-bold text-slate-900 mt-0.5">Retur Pembelian ke Vendor (PO Return jika Cacat)</h4>
+            <!-- Field Gotcha Box -->
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-3.5 rounded-r-lg text-xs text-amber-950 space-y-1">
+              <div class="font-bold flex items-center gap-1.5 text-amber-900">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Catatan Kritis Lapangan:
               </div>
-              <span class="text-xs bg-amber-50 text-amber-700 font-mono px-2.5 py-1 rounded border border-amber-200">Receipt Form > Tombol "Return"</span>
+              <p>Jika tipe produk tidak diset ke <strong>Storable Product</strong>, Odoo tidak akan pernah membuat Delivery Order maupun reservasi stok saat pesanan Blibli masuk!</p>
             </div>
-            <div class="mt-3 text-sm text-slate-600 space-y-2">
-              <p>Jika saat QC di DC ditemukan barang cacat, klik <strong>Return</strong> di receipt, masukkan jumlah unit reject (misal 20 unit) ke <code>Partner Locations/Vendors</code>, lalu validasi dokumen pengeluaran retur.</p>
-              <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-lg text-xs text-emerald-900 mt-3">
-                <strong><i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Expected Result:</strong>
-                Transfer retur berstatus <strong>Done</strong>. Saldo fisik <code>DC/Stock</code> berkurang dari 500 menjadi 480 unit. Finance menerbitkan Credit Note untuk pemotongan tagihan vendor.
+
+            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3.5 rounded-r-lg text-xs text-emerald-950 space-y-1">
+              <div class="font-bold flex items-center gap-1.5 text-emerald-900">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i> Expected Result:
               </div>
+              <p>Smart button di kanan atas menunjukkan <code>On Hand: 0.00 Units</code> dan <code>Forecasted: 0.00 Units</code>.</p>
             </div>
           </div>
         </div>
-      </section>
 
-      <!-- FASE 2 -->
-      <section id="fase-2" class="fase-section space-y-4">
-        <div class="flex items-center gap-3 pb-2 border-b border-slate-200">
-          <span class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">2</span>
-          <h3 class="text-xl font-bold text-slate-900">Fase 2: Distribusi Stok DC ke Toko Distribusi (DS)</h3>
-        </div>
-
-        <div class="step-card bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <div class="flex items-start justify-between flex-wrap gap-2">
-            <div>
-              <span class="text-xs font-bold text-blue-600 uppercase">Langkah 2.1</span>
-              <h4 class="text-base font-bold text-slate-900 mt-0.5">Internal Stock Transfer (DC ke DS)</h4>
-            </div>
-            <span class="text-xs bg-blue-50 text-blue-700 font-mono px-2.5 py-1 rounded border border-blue-100">Inventory > Operations > Transfers > New</span>
-          </div>
-          <div class="mt-3 text-sm text-slate-600 space-y-2">
-            <p>Buat transfer baru: Source = <code>DC/Stock</code>, Destination = <code>DS01/Stock</code>, Demand = 100 pcs. Klik <strong>Mark as Todo</strong> untuk mereservasi stok di DC, muat barang, isi kolom <strong>Done</strong> = 100, lalu klik <strong>Validate</strong>.</p>
-            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-lg text-xs text-emerald-900 mt-3">
-              <strong><i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Expected Result:</strong>
-              Transfer berstatus <strong>Done</strong>. Laporan inventaris Odoo 19: <code>DC/Stock</code> berkurang menjadi 380 unit, dan <code>DS01/Stock</code> bertambah menjadi 100 unit siap memenuhi pesanan online.
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- FASE 3 -->
-      <section id="fase-3" class="fase-section space-y-4">
-        <div class="flex items-center gap-3 pb-2 border-b border-slate-200">
-          <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">3</span>
-          <h3 class="text-xl font-bold text-slate-900">Fase 3: Omnichannel Sales Blibli & Handover Kurir</h3>
-        </div>
-
-        <div class="grid grid-cols-1 gap-4">
-          <!-- Step 3.1 -->
-          <div class="step-card bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-            <div class="flex items-start justify-between flex-wrap gap-2">
+        <!-- Step 0.3 -->
+        <div class="step-card bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden" data-step-id="0-3">
+          <div class="p-4 sm:p-5 flex items-start justify-between gap-3 cursor-pointer select-none" onclick="toggleStep('0-3')">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" onclick="event.stopPropagation(); updateProgress('0-3', this.checked)" class="step-checkbox mt-1 w-4 h-4 text-odoo-purple rounded border-slate-300 focus:ring-odoo-purple" title="Tandai Selesai">
               <div>
-                <span class="text-xs font-bold text-indigo-600 uppercase">Langkah 3.1</span>
-                <h4 class="text-base font-bold text-slate-900 mt-0.5">Pembuatan Sales Order Otomatis dari Blibli</h4>
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-odoo-purple">Langkah 0.3</span>
+                <h4 class="font-display font-bold text-base text-slate-900 mt-0.5">Konfigurasi Lokasi Virtual ("Blibli In-Transit")</h4>
               </div>
-              <span class="text-xs bg-indigo-50 text-indigo-700 font-mono px-2.5 py-1 rounded border border-indigo-100">API Webhook > Sales > Orders</span>
             </div>
-            <div class="mt-3 text-sm text-slate-600 space-y-2">
-              <p>Pesanan checkout pembeli Blibli masuk via API. Dokumen SO terbuat otomatis: Customer Ref mencatat nomor order Blibli, Warehouse terpetakan otomatis ke <code>Toko DS01</code>, Qty = 2 pcs @ Rp 85.000.</p>
-              <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-lg text-xs text-emerald-900 mt-3">
-                <strong><i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Expected Result:</strong>
-                Status SO menjadi <strong>Sales Order (Confirmed)</strong>. Smart button <code>Delivery (1)</code> aktif. Saldo stok <code>DS01/Stock</code>: On Hand = 100, <strong>Reserved = 2</strong>, dan <strong>Free to Use = 98</strong> (mencegah overselling secara instan!).
-              </div>
+            <div class="flex items-center gap-2">
+              <span class="hidden sm:inline-flex text-xs bg-slate-100 text-slate-700 font-mono px-2 py-1 rounded border border-slate-200">Inventory > Config > Locations</span>
+              <button class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition" aria-label="Buka Rincian">
+                <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" id="icon-0-3"></i>
+              </button>
             </div>
           </div>
 
-          <!-- Step 3.2 & 3.3 -->
-          <div class="step-card bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <span class="text-xs font-bold text-indigo-600 uppercase">Langkah 3.2 - 3.3</span>
-                <h4 class="text-base font-bold text-slate-900 mt-0.5">Picking, Packing & Handover ke Kurir Blibli (In-Transit)</h4>
-              </div>
-              <span class="text-xs bg-indigo-50 text-indigo-700 font-mono px-2.5 py-1 rounded border border-indigo-100">Delivery Form > Validate</span>
+          <div class="step-content px-4 sm:px-5 pb-5 pt-1 space-y-3 text-sm text-slate-700 border-t border-slate-100" id="content-0-3">
+            <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg text-xs font-mono text-slate-600">
+              <span>Menu: <strong>Inventory > Configuration > Locations</strong></span>
+              <button onclick="copyToClipboard('Inventory > Configuration > Locations', this)" class="text-odoo-purple hover:underline flex items-center gap-1 font-sans">
+                <i class="fa-regular fa-copy"></i> Salin Menu
+              </button>
             </div>
-            <div class="mt-3 text-sm text-slate-600 space-y-2">
-              <p>Staf toko mengambil 2 pcs barang di rak, menempelkan label AWB Blibli, lalu menyerahkan paket ke kurir logistik dengan tujuan lokasi <code>Virtual Locations/Blibli In-Transit</code>. Klik <strong>Validate</strong>.</p>
-              <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-lg text-xs text-emerald-900 mt-3">
-                <strong><i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Expected Result:</strong>
-                Delivery tahap 1 <strong>Done</strong>. Rak fisik toko <code>DS01/Stock</code> bersih berkurang -2 (menjadi 98 unit), dan saldo <code>Virtual Locations/Blibli In-Transit</code> bertambah +2 unit (terlacak aman di sistem).
+            
+            <p class="text-slate-600">
+              <strong>Tujuan:</strong> Tempat penampungan barang yang sudah di-pick-up kurir Blibli dari toko, tapi belum diterima oleh pembeli. Ini melindungi toko dari selisih audit fisik.
+            </p>
+
+            <ol class="list-decimal list-inside space-y-1.5 pl-1 text-slate-600">
+              <li>Pastikan fitur <em>Storage Locations</em> aktif di Settings Inventory Odoo 19.</li>
+              <li>Klik <strong>New</strong> di menu Locations.</li>
+              <li><strong>Location Name</strong>: <code>Blibli In-Transit</code>.</li>
+              <li><strong>Parent Location</strong>: <code>Virtual Locations</code>.</li>
+              <li><strong>Location Type</strong>: Pilih <strong>Transit Location</strong> (atau <em>Internal Location</em> jika audit menginginkan nilai rupiah aset tetap masuk neraca sebelum kurir sukses kirim).</li>
+              <li>Klik <strong>Save</strong>.</li>
+            </ol>
+
+            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3.5 rounded-r-lg text-xs text-emerald-950">
+              <strong>Expected Result:</strong> Terbentuk lokasi hirarki <code>Virtual Locations/Blibli In-Transit</code> siap pakai.
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 0.4 -->
+        <div class="step-card bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden" data-step-id="0-4">
+          <div class="p-4 sm:p-5 flex items-start justify-between gap-3 cursor-pointer select-none" onclick="toggleStep('0-4')">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" onclick="event.stopPropagation(); updateProgress('0-4', this.checked)" class="step-checkbox mt-1 w-4 h-4 text-odoo-purple rounded border-slate-300 focus:ring-odoo-purple" title="Tandai Selesai">
+              <div>
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-odoo-purple">Langkah 0.4</span>
+                <h4 class="font-display font-bold text-base text-slate-900 mt-0.5">Penentuan Harga Promo Blibli (Pricelists)</h4>
               </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="hidden sm:inline-flex text-xs bg-slate-100 text-slate-700 font-mono px-2 py-1 rounded border border-slate-200">Sales > Products > Pricelists</span>
+              <button class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition" aria-label="Buka Rincian">
+                <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" id="icon-0-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="step-content px-4 sm:px-5 pb-5 pt-1 space-y-3 text-sm text-slate-700 border-t border-slate-100" id="content-0-4">
+            <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg text-xs font-mono text-slate-600">
+              <span>Menu: <strong>Sales > Products > Pricelists</strong></span>
+              <button onclick="copyToClipboard('Sales > Products > Pricelists', this)" class="text-odoo-purple hover:underline flex items-center gap-1 font-sans">
+                <i class="fa-regular fa-copy"></i> Salin Menu
+              </button>
+            </div>
+            
+            <p class="text-slate-600">
+              Buka pricelist <code>Pricelist Blibli Official Store</code>, klik <strong>Add a line</strong>: tetapkan <strong>Fixed Price</strong> = <code>Rp 85.000</code> dan masukkan tanggal kampanye promo (Start Date & End Date).
+            </p>
+
+            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3.5 rounded-r-lg text-xs text-emerald-950">
+              <strong>Expected Result:</strong> Aturan harga promo aktif. API connector siap menarik nominal Rp 85.000 untuk sinkronisasi harga ke Blibli Seller Center.
             </div>
           </div>
         </div>
       </section>
 
-      <!-- FASE 4 -->
-      <section id="fase-4" class="fase-section space-y-4">
-        <div class="flex items-center gap-3 pb-2 border-b border-slate-200">
-          <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">4</span>
-          <h3 class="text-xl font-bold text-slate-900">Fase 4: Penyelesaian Pengiriman (Delivered)</h3>
+      <!-- ======================================================================= -->
+      <!-- FASE 1: PENGADAAN & PENERIMAAN DC                                       -->
+      <!-- ======================================================================= -->
+      <section id="fase-1" class="fase-section space-y-3 scroll-mt-28">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-teal-100 text-odoo-teal flex items-center justify-center font-display font-bold text-xs">1</span>
+            <h3 class="font-display font-bold text-lg text-slate-900">Fase 1: Pengadaan & Penerimaan Gudang Pusat (DC)</h3>
+          </div>
+          <span class="text-xs text-slate-500 font-medium">3 Langkah</span>
         </div>
 
-        <div class="step-card bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <div class="flex items-start justify-between flex-wrap gap-2">
-            <div>
-              <span class="text-xs font-bold text-emerald-600 uppercase">Langkah 4.1 - 4.2</span>
-              <h4 class="text-base font-bold text-slate-900 mt-0.5">Kurir Sukses Antar & Pemotongan Final ke Customer Location</h4>
+        <!-- Step 1.1 -->
+        <div class="step-card bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden" data-step-id="1-1">
+          <div class="p-4 sm:p-5 flex items-start justify-between gap-3 cursor-pointer select-none" onclick="toggleStep('1-1')">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" onclick="event.stopPropagation(); updateProgress('1-1', this.checked)" class="step-checkbox mt-1 w-4 h-4 text-odoo-purple rounded border-slate-300 focus:ring-odoo-purple" title="Tandai Selesai">
+              <div>
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-odoo-teal">Langkah 1.1</span>
+                <h4 class="font-display font-bold text-base text-slate-900 mt-0.5">Pembuatan & Konfirmasi Purchase Order (PO)</h4>
+              </div>
             </div>
-            <span class="text-xs bg-emerald-50 text-emerald-700 font-mono px-2.5 py-1 rounded border border-emerald-100">Webhook Blibli / Transfer Final</span>
+            <div class="flex items-center gap-2">
+              <span class="hidden sm:inline-flex text-xs bg-slate-100 text-slate-700 font-mono px-2 py-1 rounded border border-slate-200">Purchase > Orders > RfQ</span>
+              <button class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition" aria-label="Buka Rincian">
+                <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" id="icon-1-1"></i>
+              </button>
+            </div>
           </div>
-          <div class="mt-3 text-sm text-slate-600 space-y-2">
-            <p>Kurir Blibli menyelesaikan pengantaran (status Blibli = <em>Delivered</em>). Dokumen transfer pengeluaran tahap 2 tervalidasi dari <code>Virtual Locations/Blibli In-Transit</code> ke <code>Partner Locations/Customers</code>.</p>
-            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-lg text-xs text-emerald-900 mt-3">
-              <strong><i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Expected Result:</strong>
-              Saldo <code>Virtual Locations/Blibli In-Transit</code> kembali <strong>0 Units</strong>. Tombol <code>Create Invoice</code> di SO aktif. Jurnal akuntansi HPP/COGS persediaan terjual terekam otomatis di General Ledger Odoo 19.
+
+          <div class="step-content px-4 sm:px-5 pb-5 pt-1 space-y-3 text-sm text-slate-700 border-t border-slate-100" id="content-1-1">
+            <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg text-xs font-mono text-slate-600">
+              <span>Menu: <strong>Purchase > Orders > Requests for Quotation</strong></span>
+              <button onclick="copyToClipboard('Purchase > Orders > Requests for Quotation', this)" class="text-odoo-purple hover:underline flex items-center gap-1 font-sans">
+                <i class="fa-regular fa-copy"></i> Salin Menu
+              </button>
+            </div>
+
+            <ol class="list-decimal list-inside space-y-1.5 pl-1 text-slate-600">
+              <li>Pilih <strong>Vendor</strong>: <code>PT Supplier Utama Indonesia</code>.</li>
+              <li>Pastikan <strong>Deliver To</strong> mengarah ke <code>DC/Receipts</code> (Gudang Pusat).</li>
+              <li>Tab <strong>Products</strong>: Masukkan <code>Kopi Arabika Specialty 250g</code>, Qty = <code>500</code> Pcs @ Rp 55.000.</li>
+              <li>Klik tombol <strong>Confirm Order</strong> pada Action Bar Odoo 19.</li>
+            </ol>
+
+            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3.5 rounded-r-lg text-xs text-emerald-950 space-y-1">
+              <div class="font-bold flex items-center gap-1.5 text-emerald-900">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i> Expected Result:
+              </div>
+              <p>Status dokumen berubah menjadi <strong>Purchase Order</strong>. Smart button <code>Receipt (1)</code> muncul di pojok kanan atas form. Nilai <code>Forecasted</code> produk otomatis bertambah +500 unit.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 1.2 -->
+        <div class="step-card bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden" data-step-id="1-2">
+          <div class="p-4 sm:p-5 flex items-start justify-between gap-3 cursor-pointer select-none" onclick="toggleStep('1-2')">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" onclick="event.stopPropagation(); updateProgress('1-2', this.checked)" class="step-checkbox mt-1 w-4 h-4 text-odoo-purple rounded border-slate-300 focus:ring-odoo-purple" title="Tandai Selesai">
+              <div>
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-odoo-teal">Langkah 1.2</span>
+                <h4 class="font-display font-bold text-base text-slate-900 mt-0.5">Penerimaan Fisik di DC (Goods Receipt - GR / WH/IN)</h4>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="hidden sm:inline-flex text-xs bg-slate-100 text-slate-700 font-mono px-2 py-1 rounded border border-slate-200">Inventory > Operations > Transfers</span>
+              <button class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition" aria-label="Buka Rincian">
+                <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" id="icon-1-2"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="step-content px-4 sm:px-5 pb-5 pt-1 space-y-3 text-sm text-slate-700 border-t border-slate-100" id="content-1-2">
+            <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg text-xs font-mono text-slate-600">
+              <span>Buka Dokumen: <strong>WH/IN/xxxxx</strong> (Status: Ready)</span>
+              <button onclick="copyToClipboard('Inventory > Operations > Transfers', this)" class="text-odoo-purple hover:underline flex items-center gap-1 font-sans">
+                <i class="fa-regular fa-copy"></i> Salin Menu
+              </button>
+            </div>
+
+            <p class="text-slate-600">
+              Tim DC membongkar muatan truk supplier. Jika seluruh 500 unit utuh, klik tombol <strong>Set Quantities</strong> (kolom <strong>Done</strong> terisi 500). Jika ada Lot/Expiry date, klik ikon barcode list. Klik <strong>Validate</strong>.
+            </p>
+
+            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3.5 rounded-r-lg text-xs text-emerald-950 space-y-1">
+              <div class="font-bold flex items-center gap-1.5 text-emerald-900">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i> Expected Result:
+              </div>
+              <p>Status transfer berubah menjadi <strong>Done</strong> (badge hijau). Stok fisik di <code>DC/Stock</code> resmi bertambah +500 unit. Di PO, kolom <strong>Received</strong> berubah menjadi <code>500.00</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 1.3 -->
+        <div class="step-card bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden" data-step-id="1-3">
+          <div class="p-4 sm:p-5 flex items-start justify-between gap-3 cursor-pointer select-none" onclick="toggleStep('1-3')">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" onclick="event.stopPropagation(); updateProgress('1-3', this.checked)" class="step-checkbox mt-1 w-4 h-4 text-odoo-purple rounded border-slate-300 focus:ring-odoo-purple" title="Tandai Selesai">
+              <div>
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-600">Opsi Cabang 1.3</span>
+                <h4 class="font-display font-bold text-base text-slate-900 mt-0.5">Retur Pembelian ke Vendor (PO Return jika Cacat)</h4>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="hidden sm:inline-flex text-xs bg-amber-50 text-amber-800 font-mono px-2 py-1 rounded border border-amber-200">Tombol "Return" pada Receipt</span>
+              <button class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition" aria-label="Buka Rincian">
+                <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" id="icon-1-3"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="step-content px-4 sm:px-5 pb-5 pt-1 space-y-3 text-sm text-slate-700 border-t border-slate-100" id="content-1-3">
+            <p class="text-slate-600">
+              Jika saat bongkar muat ditemukan 20 unit rusak/bocor: buka dokumen receipt yang sudah <em>Done</em>, klik tombol <strong>Return</strong> di kiri atas. Masukkan Qty = <code>20</code>, Return Location = <code>Partner Locations/Vendors</code>. Klik Return. Buka dokumen transfer retur yang tercipta (`WH/RET/xxxxx`), isi Done = 20, klik <strong>Validate</strong>.
+            </p>
+
+            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3.5 rounded-r-lg text-xs text-emerald-950">
+              <strong>Expected Result:</strong> Status retur menjadi <strong>Done</strong>. Stok <code>DC/Stock</code> berkurang seketika dari 500 menjadi 480 unit. Bagian Finance menerbitkan Credit Note untuk memotong tagihan pemasok.
             </div>
           </div>
         </div>
       </section>
 
-      <!-- FASE 5 -->
-      <section id="fase-5" class="fase-section space-y-4">
-        <div class="flex items-center gap-3 pb-2 border-b border-slate-200">
-          <span class="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-sm">5</span>
-          <h3 class="text-xl font-bold text-slate-900">Fase 5: Skenario Deviasi & Kasus Khusus (Exceptions)</h3>
+      <!-- ======================================================================= -->
+      <!-- FASE 2: DISTRIBUSI STOK DC KE TOKO (DS)                                 -->
+      <!-- ======================================================================= -->
+      <section id="fase-2" class="fase-section space-y-3 scroll-mt-28">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-display font-bold text-xs">2</span>
+            <h3 class="font-display font-bold text-lg text-slate-900">Fase 2: Distribusi Stok DC ke Toko Distribusi (DS)</h3>
+          </div>
+          <span class="text-xs text-slate-500 font-medium">1 Langkah</span>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <!-- 5.1 -->
-          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-            <div>
-              <span class="text-xs font-bold text-rose-600 uppercase">Kasus 5.1</span>
-              <h4 class="text-base font-bold text-slate-900 mt-1">Pembatalan Pesanan</h4>
-              <p class="text-xs text-slate-600 mt-2">Batal sebelum kirim (klik Cancel di SO) vs Batal setelah kurir jalan (transfer balik dari In-Transit).</p>
+        <!-- Step 2.1 -->
+        <div class="step-card bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden" data-step-id="2-1">
+          <div class="p-4 sm:p-5 flex items-start justify-between gap-3 cursor-pointer select-none" onclick="toggleStep('2-1')">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" onclick="event.stopPropagation(); updateProgress('2-1', this.checked)" class="step-checkbox mt-1 w-4 h-4 text-odoo-purple rounded border-slate-300 focus:ring-odoo-purple" title="Tandai Selesai">
+              <div>
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-blue-600">Langkah 2.1</span>
+                <h4 class="font-display font-bold text-base text-slate-900 mt-0.5">Internal Stock Transfer (DC ke Toko Cabang)</h4>
+              </div>
             </div>
-            <div class="mt-4 bg-slate-50 p-2.5 rounded text-xs text-slate-700 border border-slate-200">
-              <strong>Expected:</strong> Reservasi lepas (Unreserved), stok Free to Use kembali utuh di toko.
-            </div>
-          </div>
-
-          <!-- 5.2 -->
-          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-            <div>
-              <span class="text-xs font-bold text-rose-600 uppercase">Kasus 5.2</span>
-              <h4 class="text-base font-bold text-slate-900 mt-1">Retur Penjualan & QC</h4>
-              <p class="text-xs text-slate-600 mt-2">Reverse transfer dari Customer ke QC Toko. Jika baik masuk stok jual; jika cacat dialihkan ke Scrap.</p>
-            </div>
-            <div class="mt-4 bg-slate-50 p-2.5 rounded text-xs text-slate-700 border border-slate-200">
-              <strong>Expected:</strong> Dokumen retur Done, stok terupdate, Credit Note terbit untuk refund dana pelanggan.
+            <div class="flex items-center gap-2">
+              <span class="hidden sm:inline-flex text-xs bg-slate-100 text-slate-700 font-mono px-2 py-1 rounded border border-slate-200">Inventory > Operations > Transfers > New</span>
+              <button class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition" aria-label="Buka Rincian">
+                <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" id="icon-2-1"></i>
+              </button>
             </div>
           </div>
 
-          <!-- 5.3 -->
-          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-            <div>
-              <span class="text-xs font-bold text-rose-600 uppercase">Kasus 5.3</span>
-              <h4 class="text-base font-bold text-slate-900 mt-1">Opname Harian & Scrap</h4>
-              <p class="text-xs text-slate-600 mt-2">Rekonsiliasi fisik vs sistem di <code>Physical Inventory</code> serta penarikan barang expired/rusak di <code>Scrap</code>.</p>
+          <div class="step-content px-4 sm:px-5 pb-5 pt-1 space-y-3 text-sm text-slate-700 border-t border-slate-100" id="content-2-1">
+            <ol class="list-decimal list-inside space-y-1.5 pl-1 text-slate-600">
+              <li>Buat transfer baru: <strong>Operation Type</strong> = <code>DC: Internal Transfers</code>.</li>
+              <li><strong>Source Location</strong>: <code>DC/Stock</code>.</li>
+              <li><strong>Destination Location</strong>: <code>DS01/Stock</code> (Toko Distribusi Jakarta Selatan).</li>
+              <li>Produk: <code>Kopi Arabika Specialty 250g</code>, Demand = <code>100</code> Pcs.</li>
+              <li>Klik <strong>Mark as Todo</strong>: Status menjadi <em>Ready</em>, 100 unit otomatis terkunci (Reserved) di DC.</li>
+              <li>Saat barang fisik dinaikkan ke armada pengantaran toko: isi kolom <strong>Done</strong> = <code>100</code>, lalu klik <strong>Validate</strong>.</li>
+            </ol>
+
+            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3.5 rounded-r-lg text-xs text-emerald-950 space-y-1">
+              <div class="font-bold flex items-center gap-1.5 text-emerald-900">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i> Expected Result:
+              </div>
+              <p>Transfer tervalidasi <strong>Done</strong>. Di menu <em>Inventory > Reporting > Stock</em>: <code>DC/Stock</code> berkurang menjadi 380 unit, dan <code>DS01/Stock</code> bertambah menjadi 100 unit siap memenuhi pesanan online Blibli.</p>
             </div>
-            <div class="mt-4 bg-slate-50 p-2.5 rounded text-xs text-slate-700 border border-slate-200">
-              <strong>Expected:</strong> Saldo On Hand sinkron presisi, selisih tercatat ke akun kerugian Inventory Loss.
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================================= -->
+      <!-- FASE 3: OMNICHANNEL SALES BLIBLI & IN-TRANSIT                           -->
+      <!-- ======================================================================= -->
+      <section id="fase-3" class="fase-section space-y-3 scroll-mt-28">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-display font-bold text-xs">3</span>
+            <h3 class="font-display font-bold text-lg text-slate-900">Fase 3: Pesanan Blibli Masuk & Handover Kurir</h3>
+          </div>
+          <span class="text-xs text-slate-500 font-medium">3 Langkah</span>
+        </div>
+
+        <!-- Step 3.1 -->
+        <div class="step-card bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden" data-step-id="3-1">
+          <div class="p-4 sm:p-5 flex items-start justify-between gap-3 cursor-pointer select-none" onclick="toggleStep('3-1')">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" onclick="event.stopPropagation(); updateProgress('3-1', this.checked)" class="step-checkbox mt-1 w-4 h-4 text-odoo-purple rounded border-slate-300 focus:ring-odoo-purple" title="Tandai Selesai">
+              <div>
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-indigo-600">Langkah 3.1</span>
+                <h4 class="font-display font-bold text-base text-slate-900 mt-0.5">Pembuatan Sales Order Otomatis dari Blibli</h4>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="hidden sm:inline-flex text-xs bg-slate-100 text-slate-700 font-mono px-2 py-1 rounded border border-slate-200">Webhook API > Sales > Orders</span>
+              <button class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition" aria-label="Buka Rincian">
+                <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" id="icon-3-1"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="step-content px-4 sm:px-5 pb-5 pt-1 space-y-3 text-sm text-slate-700 border-t border-slate-100" id="content-3-1">
+            <p class="text-slate-600">
+              Pelanggan checkout 2 pcs produk di Blibli. Webhook integrasi menangkap order dan langsung membentuk dokumen Sales Order resmi di Odoo 19:
+            </p>
+            <ul class="list-disc list-inside space-y-1 pl-1 text-slate-600 font-mono text-xs">
+              <li>Order Name: <code>SO-BLI-98421</code></li>
+              <li>Customer Reference: <code>BLI-ORDER-20260902-001</code></li>
+              <li>Warehouse: Terpetakan otomatis ke Toko Terdekat (<code>DS Jakarta Selatan</code>)</li>
+              <li>Order Lines: <code>KOP-ARA-250</code> x 2 Pcs @ Rp 85.000 (Harga Promo Fase 0.4)</li>
+            </ul>
+
+            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3.5 rounded-r-lg text-xs text-emerald-950 space-y-1">
+              <div class="font-bold flex items-center gap-1.5 text-emerald-900">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i> Expected Result:
+              </div>
+              <p>Status SO otomatis <strong>Sales Order (Confirmed)</strong>. Smart button <code>Delivery (1)</code> aktif. Saldo stok <code>DS01/Stock</code>: On Hand = 100, <strong>Reserved = 2</strong>, dan <strong>Free to Use = 98</strong> (*Mencegah overselling seketika!*).</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3.2 & 3.3 -->
+        <div class="step-card bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden" data-step-id="3-2">
+          <div class="p-4 sm:p-5 flex items-start justify-between gap-3 cursor-pointer select-none" onclick="toggleStep('3-2')">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" onclick="event.stopPropagation(); updateProgress('3-2', this.checked)" class="step-checkbox mt-1 w-4 h-4 text-odoo-purple rounded border-slate-300 focus:ring-odoo-purple" title="Tandai Selesai">
+              <div>
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-indigo-600">Langkah 3.2 & 3.3</span>
+                <h4 class="font-display font-bold text-base text-slate-900 mt-0.5">Picking, Packing & Serah Terima Kurir (In-Transit)</h4>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="hidden sm:inline-flex text-xs bg-slate-100 text-slate-700 font-mono px-2 py-1 rounded border border-slate-200">Delivery Form > Validate</span>
+              <button class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition" aria-label="Buka Rincian">
+                <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" id="icon-3-2"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="step-content px-4 sm:px-5 pb-5 pt-1 space-y-3 text-sm text-slate-700 border-t border-slate-100" id="content-3-2">
+            <ol class="list-decimal list-inside space-y-1.5 pl-1 text-slate-600">
+              <li>Staf toko membuka smart button <strong>Delivery</strong> pada SO (`DS01/OUT/xxxxx`).</li>
+              <li>Ambil 2 pcs barang di rak, tempelkan label shipping AWB Blibli.</li>
+              <li>Ketik kuantitas di kolom <strong>Done</strong> = <code>2</code>.</li>
+              <li>Saat kurir logistik tiba, ubah tujuan transfer ke <code>Virtual Locations/Blibli In-Transit</code>, lalu klik <strong>Validate</strong>.</li>
+            </ol>
+
+            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3.5 rounded-r-lg text-xs text-emerald-950 space-y-1">
+              <div class="font-bold flex items-center gap-1.5 text-emerald-900">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i> Expected Result:
+              </div>
+              <p>Delivery tahap 1 <strong>Done</strong>. Rak fisik toko <code>DS01/Stock</code> bersih berkurang -2 (menjadi 98 unit), dan saldo <code>Virtual Locations/Blibli In-Transit</code> bertambah +2 unit. Barang terlacak aman sedang berada di jalan bersama ekspedisi.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================================= -->
+      <!-- FASE 4: PENYELESAIAN PENGIRIMAN (DELIVERED)                             -->
+      <!-- ======================================================================= -->
+      <section id="fase-4" class="fase-section space-y-3 scroll-mt-28">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-display font-bold text-xs">4</span>
+            <h3 class="font-display font-bold text-lg text-slate-900">Fase 4: Penyelesaian Pengiriman (Delivered & Potong Stok Final)</h3>
+          </div>
+          <span class="text-xs text-slate-500 font-medium">2 Langkah</span>
+        </div>
+
+        <div class="step-card bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden" data-step-id="4-1">
+          <div class="p-4 sm:p-5 flex items-start justify-between gap-3 cursor-pointer select-none" onclick="toggleStep('4-1')">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" onclick="event.stopPropagation(); updateProgress('4-1', this.checked)" class="step-checkbox mt-1 w-4 h-4 text-odoo-purple rounded border-slate-300 focus:ring-odoo-purple" title="Tandai Selesai">
+              <div>
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-600">Langkah 4.1 & 4.2</span>
+                <h4 class="font-display font-bold text-base text-slate-900 mt-0.5">Kurir Sukses Antar & Pemotongan Final ke Customer Location</h4>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="hidden sm:inline-flex text-xs bg-slate-100 text-slate-700 font-mono px-2 py-1 rounded border border-slate-200">Webhook Blibli / Transfer Final</span>
+              <button class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition" aria-label="Buka Rincian">
+                <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" id="icon-4-1"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="step-content px-4 sm:px-5 pb-5 pt-1 space-y-3 text-sm text-slate-700 border-t border-slate-100" id="content-4-1">
+            <p class="text-slate-600">
+              Kurir Blibli menyelesaikan pengantaran (status Blibli = <em>Delivered</em>). Webhook memicu validasi transfer tahap akhir:
+            </p>
+            <ul class="list-disc list-inside space-y-1 pl-1 text-slate-600 font-mono text-xs">
+              <li>Source: <code>Virtual Locations/Blibli In-Transit</code></li>
+              <li>Destination: <code>Partner Locations/Customers</code></li>
+              <li>Quantity: <code>2.00</code> Pcs</li>
+            </ul>
+
+            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-3.5 rounded-r-lg text-xs text-emerald-950 space-y-1">
+              <div class="font-bold flex items-center gap-1.5 text-emerald-900">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i> Expected Result:
+              </div>
+              <p>Saldo <code>Virtual Locations/Blibli In-Transit</code> kembali <strong>0 Units</strong>. Tombol <code>Create Invoice</code> di SO aktif. Jurnal akuntansi HPP/COGS persediaan terjual terekam otomatis di General Ledger Odoo 19.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================================= -->
+      <!-- FASE 5: SKENARIO DEVIASI & KONTROL STOK                                 -->
+      <!-- ======================================================================= -->
+      <section id="fase-5" class="fase-section space-y-3 scroll-mt-28">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center font-display font-bold text-xs">5</span>
+            <h3 class="font-display font-bold text-lg text-slate-900">Fase 5: Skenario Deviasi & Kasus Khusus (Exceptions)</h3>
+          </div>
+          <span class="text-xs text-rose-600 font-bold">3 Kasus</span>
+        </div>
+
+        <!-- 5.1 Cancellation -->
+        <div class="step-card bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden" data-step-id="5-1">
+          <div class="p-4 sm:p-5 flex items-start justify-between gap-3 cursor-pointer select-none" onclick="toggleStep('5-1')">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" onclick="event.stopPropagation(); updateProgress('5-1', this.checked)" class="step-checkbox mt-1 w-4 h-4 text-odoo-purple rounded border-slate-300 focus:ring-odoo-purple" title="Tandai Selesai">
+              <div>
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-rose-600">Kasus 5.1</span>
+                <h4 class="font-display font-bold text-base text-slate-900 mt-0.5">Pembatalan Pesanan (Sales Cancellation)</h4>
+              </div>
+            </div>
+            <button class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition" aria-label="Buka Rincian">
+              <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" id="icon-5-1"></i>
+            </button>
+          </div>
+
+          <div class="step-content px-4 sm:px-5 pb-5 pt-1 space-y-3 text-sm text-slate-700 border-t border-slate-100" id="content-5-1">
+            <div class="space-y-2">
+              <p><strong>A. Batal Sebelum Handover Kurir:</strong> Buka SO di Odoo 19, klik tombol <strong>Cancel</strong>. Dokumen delivery otomatis dibatalkan dan reservasi stok langsung dilepas (Unreserved) kembali ke stok bebas siap jual (Free to Use naik dari 98 ke 100).</p>
+              <p><strong>B. Batal Saat Barang Dibawa Kurir (Gagal Antar / Kurir Balik Kucing):</strong> Buat transfer penerimaan balik dari <code>Blibli In-Transit</code> ke <code>DS01/Stock</code>, klik Validate, lalu cancel dokumen SO asli. Saldo In-Transit kembali 0 dan rak toko utuh kembali 100.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5.2 Return -->
+        <div class="step-card bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden" data-step-id="5-2">
+          <div class="p-4 sm:p-5 flex items-start justify-between gap-3 cursor-pointer select-none" onclick="toggleStep('5-2')">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" onclick="event.stopPropagation(); updateProgress('5-2', this.checked)" class="step-checkbox mt-1 w-4 h-4 text-odoo-purple rounded border-slate-300 focus:ring-odoo-purple" title="Tandai Selesai">
+              <div>
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-rose-600">Kasus 5.2</span>
+                <h4 class="font-display font-bold text-base text-slate-900 mt-0.5">Retur Penjualan oleh Pelanggan & QC Karantina</h4>
+              </div>
+            </div>
+            <button class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition" aria-label="Buka Rincian">
+              <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" id="icon-5-2"></i>
+            </button>
+          </div>
+
+          <div class="step-content px-4 sm:px-5 pb-5 pt-1 space-y-3 text-sm text-slate-700 border-t border-slate-100" id="content-5-2">
+            <p class="text-slate-600">
+              Buka Delivery Order asli yang sudah <em>Done</em>, klik tombol <strong>Return</strong>. Arahkan Return Location ke lokasi karantina pemeriksaan <code>DS01/Input</code>. Lakukan pemeriksaan mutu (QC):
+            </p>
+            <ul class="list-disc list-inside space-y-1 pl-1 text-slate-600 text-xs">
+              <li><strong>Barang Masih Bagus / Segel Utuh:</strong> Validasi penerimaan ke <code>DS01/Stock</code>. Stok kembali siap dijual ke pembeli lain.</li>
+              <li><strong>Barang Rusak / Bocor:</strong> Validasi penerimaan, lalu lanjutkan dengan membuat dokumen <strong>Scrap</strong>.</li>
+              <li><strong>Refund:</strong> Buka invoice di SO, klik <strong>Add Credit Note</strong> untuk pengembalian saldo pembeli.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 5.3 Stock Adjustment & Scrap -->
+        <div class="step-card bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden" data-step-id="5-3">
+          <div class="p-4 sm:p-5 flex items-start justify-between gap-3 cursor-pointer select-none" onclick="toggleStep('5-3')">
+            <div class="flex items-start gap-3">
+              <input type="checkbox" onclick="event.stopPropagation(); updateProgress('5-3', this.checked)" class="step-checkbox mt-1 w-4 h-4 text-odoo-purple rounded border-slate-300 focus:ring-odoo-purple" title="Tandai Selesai">
+              <div>
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-rose-600">Kasus 5.3</span>
+                <h4 class="font-display font-bold text-base text-slate-900 mt-0.5">Rekonsiliasi Stock Opname Harian & Scrap Produk Rusak</h4>
+              </div>
+            </div>
+            <button class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition" aria-label="Buka Rincian">
+              <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" id="icon-5-3"></i>
+            </button>
+          </div>
+
+          <div class="step-content px-4 sm:px-5 pb-5 pt-1 space-y-3 text-sm text-slate-700 border-t border-slate-100" id="content-5-3">
+            <div class="space-y-2">
+              <p><strong>A. Opname Harian di `Inventory > Operations > Physical Inventory`:</strong> Filter lokasi toko <code>DS01/Stock</code>. Kolom On Hand di sistem bernilai 98, namun hitungan fisik di rak hanya 97. Ketik angka <code>97</code> di kolom <em>Counted</em> (kolom Difference otomatis -1.00), lalu klik <strong>Apply</strong>. Jurnal kerugian otomatis dibukukan ke akun persediaan.</p>
+              <p><strong>B. Scrap di `Inventory > Operations > Scrap`:</strong> Jika ada 1 unit rusak/jatuh di toko, buat dokumen Scrap ke <code>Virtual Locations/Scrap</code> dan klik Validate. Stok jual langsung terpotong 1 unit dan terisolasi dari pesanan online.</p>
             </div>
           </div>
         </div>
@@ -473,74 +923,214 @@ graph LR
     </main>
   </div>
 
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 pointer-events-none flex flex-col gap-2"></div>
+
   <!-- FOOTER -->
-  <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-    <div class="max-w-7xl mx-auto px-4">
-      <p>Standar Operasional Prosedur (SOP) Odoo 19 ERP Terpadu • Progressive Web App (PWA)</p>
+  <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-12 no-print">
+    <div class="max-w-7xl mx-auto px-4 space-y-1">
+      <p class="font-semibold text-slate-700">SOP Operasional Odoo 19 ERP • WMS Multi-Warehouse & Omnichannel Blibli</p>
+      <p>Progressive Web App (PWA) • Mode Luar Jaringan (Offline-Ready)</p>
     </div>
   </footer>
 
-  <!-- JAVASCRIPT: FILTER & PWA REGISTRATION -->
+  <!-- SCRIPT CONTROLLERS (Mobile Touch, Search, Progress, Toast, PWA) -->
   <script>
-    // Live Search Filter
-    function filterSteps() {
-      const input = document.getElementById('searchInput').value.toLowerCase();
+    // ===== 1. ACCORDION EXPAND / COLLAPSE =====
+    function toggleStep(stepId) {
+      const content = document.getElementById(`content-${stepId}`);
+      const icon = document.getElementById(`icon-${stepId}`);
+      if (!content) return;
+
+      const isCollapsed = content.classList.contains('hidden');
+      if (isCollapsed) {
+        content.classList.remove('hidden');
+        if (icon) icon.style.transform = 'rotate(180deg)';
+      } else {
+        content.classList.add('hidden');
+        if (icon) icon.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    let allExpanded = true;
+    function toggleAllSteps() {
+      allExpanded = !allExpanded;
+      const contents = document.querySelectorAll('.step-content');
+      const icons = document.querySelectorAll('[id^="icon-"]');
+      const toggleText = document.getElementById('toggleAllText');
+      const toggleIcon = document.getElementById('toggleAllIcon');
+
+      contents.forEach(c => {
+        if (allExpanded) c.classList.remove('hidden');
+        else c.classList.add('hidden');
+      });
+
+      icons.forEach(i => {
+        i.style.transform = allExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+      });
+
+      if (toggleText) toggleText.textContent = allExpanded ? 'Tutup Semua' : 'Buka Semua';
+      if (toggleIcon) toggleIcon.className = allExpanded ? 'fa-solid fa-angles-up text-[11px]' : 'fa-solid fa-angles-down text-[11px]';
+    }
+
+    // ===== 2. LIVE SEARCH WITH EMPTY STATE & COUNTER =====
+    function filterSteps(query) {
+      const q = query.toLowerCase().trim();
       const cards = document.querySelectorAll('.step-card');
+      const sections = document.querySelectorAll('.fase-section');
+      let matches = 0;
+
       cards.forEach(card => {
         const text = card.innerText.toLowerCase();
-        card.style.display = text.includes(input) ? 'block' : 'none';
+        const isMatch = text.includes(q);
+        card.style.display = isMatch ? 'block' : 'none';
+        if (isMatch) {
+          matches++;
+          // auto expand matched cards
+          if (q.length > 1) {
+            const content = card.querySelector('.step-content');
+            if (content) content.classList.remove('hidden');
+          }
+        }
+      });
+
+      // hide empty sections during search
+      sections.forEach(sec => {
+        const visibleCards = sec.querySelectorAll('.step-card[style*="display: block"]');
+        sec.style.display = (q === '' || visibleCards.length > 0) ? 'block' : 'none';
+      });
+
+      const countEl = document.getElementById('searchResultsCount');
+      const matchSpan = document.getElementById('matchCount');
+      if (countEl && matchSpan) {
+        if (q.length > 1) {
+          countEl.classList.remove('hidden');
+          matchSpan.textContent = matches;
+        } else {
+          countEl.classList.add('hidden');
+        }
+      }
+    }
+
+    // ===== 3. OPERATOR CHECKLIST PROGRESS (LocalStorage) =====
+    function getStoredProgress() {
+      try {
+        return JSON.parse(localStorage.getItem('odoo19_sop_progress') || '{}');
+      } catch {
+        return {};
+      }
+    }
+
+    function updateProgress(stepId, isChecked) {
+      const progress = getStoredProgress();
+      progress[stepId] = isChecked;
+      localStorage.setItem('odoo19_sop_progress', JSON.stringify(progress));
+      renderProgressUI();
+      if (isChecked) {
+        showToast('Langkah berhasil ditandai selesai! ✓', 'success');
+      }
+    }
+
+    function renderProgressUI() {
+      const progress = getStoredProgress();
+      const checkboxes = document.querySelectorAll('.step-checkbox');
+      let completedCount = 0;
+
+      checkboxes.forEach(cb => {
+        const stepCard = cb.closest('.step-card');
+        if (!stepCard) return;
+        const stepId = stepCard.getAttribute('data-step-id');
+        const isDone = !!progress[stepId];
+        cb.checked = isDone;
+        if (isDone) {
+          completedCount++;
+          stepCard.classList.add('bg-slate-50/70');
+        } else {
+          stepCard.classList.remove('bg-slate-50/70');
+        }
+      });
+
+      const total = checkboxes.length || 14;
+      const pct = Math.round((completedCount / total) * 100);
+
+      const bar = document.getElementById('progressBar');
+      const text = document.getElementById('progressText');
+      if (bar) bar.style.width = `${pct}%`;
+      if (text) text.textContent = `${completedCount} / ${total}`;
+    }
+
+    // ===== 4. COPY TO CLIPBOARD WITH TOAST =====
+    function copyToClipboard(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(`Menu disalin: "${text}"`, 'info');
       });
     }
 
-    // PWA Service Worker Registration
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold text-white transition-all transform duration-200 translate-y-2 opacity-0 ${
+        type === 'success' ? 'bg-emerald-600' : 'bg-slate-900'
+      }`;
+      toast.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>${message}</span>`;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 200);
+      }, 2500);
+    }
+
+    // ===== 5. PWA SERVICE WORKER & OFFLINE DETECTION =====
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then((reg) => console.log('[PWA] Service Worker registered with scope:', reg.scope))
-          .catch((err) => console.error('[PWA] Service Worker registration failed:', err));
+          .then(reg => console.log('[PWA] Service Worker active:', reg.scope))
+          .catch(err => console.error('[PWA] Service Worker error:', err));
       });
     }
 
-    // PWA Offline/Online HUD Detection
     const offlineBanner = document.getElementById('offlineBanner');
-    function updateOnlineStatus() {
-      if (!navigator.onLine) {
-        offlineBanner.classList.remove('hidden');
-      } else {
-        offlineBanner.classList.add('hidden');
+    function checkNetwork() {
+      if (offlineBanner) {
+        if (!navigator.onLine) offlineBanner.classList.remove('hidden');
+        else offlineBanner.classList.add('hidden');
       }
     }
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-    updateOnlineStatus();
+    window.addEventListener('online', checkNetwork);
+    window.addEventListener('offline', checkNetwork);
+    checkNetwork();
 
-    // PWA Install Prompt Button Handling
-    let deferredPrompt;
+    // PWA Install Trigger
+    let pwaPrompt;
     const installBtn = document.getElementById('pwaInstallBtn');
-
-    window.addEventListener('beforeinstallprompt', (e) => {
+    window.addEventListener('beforeinstallprompt', e => {
       e.preventDefault();
-      deferredPrompt = e;
-      if (installBtn) {
-        installBtn.classList.remove('hidden');
-      }
+      pwaPrompt = e;
+      if (installBtn) installBtn.classList.remove('hidden');
     });
 
     if (installBtn) {
       installBtn.addEventListener('click', async () => {
-        if (deferredPrompt) {
-          deferredPrompt.prompt();
-          const { outcome } = await deferredPrompt.userChoice;
-          console.log(`[PWA] User install choice: ${outcome}`);
-          deferredPrompt = null;
+        if (pwaPrompt) {
+          pwaPrompt.prompt();
+          const { outcome } = await pwaPrompt.userChoice;
+          console.log('[PWA] User choice:', outcome);
+          pwaPrompt = null;
           installBtn.classList.add('hidden');
         }
       });
     }
 
-    window.addEventListener('appinstalled', () => {
-      console.log('[PWA] App successfully installed!');
-      if (installBtn) installBtn.classList.add('hidden');
+    // Initialize state on load
+    document.addEventListener('DOMContentLoaded', () => {
+      renderProgressUI();
     });
   </script>
 </body>
