@@ -1,371 +1,207 @@
-# STANDAR OPERASIONAL PROSEDUR (SOP) TERPADU ODOO 19 ERP
-## End-to-End Flow: Procurement, WMS Multi-Lokasi (DC & DS), Omnichannel Blibli, dan Kontrol Stok
+# STANDAR OPERASIONAL PROSEDUR (SOP) ODOO 19 ERP
+## Arsitektur Integrasi: Odoo ERP (Central Hub) ↔ Middleware ↔ Yango WMS (DC & Toko) ↔ Blibli
 
-> **Versi Target**: Odoo 19 (Enterprise / Community)  
-> **Fitur Kunci Odoo 19**: Command Palette (`Ctrl+K` / `Cmd+K`), Modern Action Bar, In-App Knowledge App, Real-Time Stock Reservation & Dispatching, Two-Step Delivery with Virtual In-Transit.
+> **Dokumen Referensi**: *Meeting Requirements Brief — Integration Architecture Option 3*  
+> **Peran Odoo 19**: Central Hub (Akuntansi & Keuangan, Procurement, Master Katalog/Harga SSOT, dan Valuasi Persediaan).  
+> **Peran Yango WMS**: Eksekusi Fisik Gudang Pusat (DC) dan Toko Distribusi (DS) melalui **Yango Mobile**.  
+> **Peran Blibli Seller Center**: Kanal Penjualan Marketplace Omnichannel.  
+> **Peran Middleware**: Jembatan API real-time, event broker, retry mechanism, dan rekonsiliasi data otomatis.
 
 ---
 
-## DAFTAR ISI KELANGKAPAN ALUR (END-TO-END)
+## 1. PETA PERAN SISTEM & PEMBAGIAN KERJA
+
+| Domain Operasional | Sistem Eksekusi (Front-End) | Sistem Pencatatan & Finansial (Back-End) | Peran Middleware |
+|---|---|---|---|
+| **Master Produk & Harga** | **Odoo 19** (Single Source of Truth) | **Odoo 19** | Kirim data produk & harga promo ke Blibli & Yango |
+| **Registrasi Supplier & PO** | **Odoo 19** (Tim Procurement) | **Odoo 19** | Sinkronisasi nomor PO & ekspektasi barang ke Yango DC |
+| **Penerimaan Barang DC (GR)** | **Yango Mobile** (Staf scan di DC) | **Odoo 19** (Validasi GR & update HPP) | Tangkap event scan GR Yango ➔ Validasi `WH/IN` di Odoo |
+| **Transfer Stok DC ke Toko** | **Yango Mobile** (Staf scan transfer) | **Odoo 19** (Mutasi buku DC ke DS) | Tangkap transfer Yango ➔ Buat Internal Transfer Odoo |
+| **Pesanan Masuk Blibli** | **Blibli Seller Center** | **Odoo 19** (Terbit Sales Order & Reservasi) | Blibli ➔ Yango (Picking) & Odoo (Sales Creation) |
+| **Handover ke Kurir Blibli** | **Yango Mobile** (Kru toko serah kurir) | **Odoo 19** (Pindah ke Blibli In-Transit) | Tangkap status serah kurir ➔ Pindah ke In-Transit |
+| **Kurir Sukses Antar** | **Kurir Blibli** (Status Delivered) | **Odoo 19** (Potong In-Transit, HPP & Invoice) | Tangkap event Delivered ➔ Potong stok final & Jurnal |
+| **Retur, Batal, & Opname** | **Yango Mobile** (Toko fisik) | **Odoo 19** (Credit Note, Scrap, Selisih Buku) | Tangkap QC retur/opname ➔ Sesuaikan GL Odoo |
+
+---
+
+## 2. APA SAJA YANG HARUS ADA DI SOP ODOO 19?
+
+Karena seluruh pemindaian barcode fisik di lantai gudang/toko ditangani oleh **Yango Mobile**, maka SOP pengoperasian Odoo 19 difokuskan pada **4 Peran Utama Pengguna Odoo**:
+
+1. **SOP Tim Procurement & Purchasing**: Membuat data vendor, negosiasi termin, dan merilis PO resmi di Odoo.
+2. **SOP Tim Master Data & Marketplace**: Mengelola katalog SKU, barcode, bobot kemasan, dan aturan harga promo Blibli (Pricelist) sebagai *Single Source of Truth*.
+3. **SOP Tim ERP & WMS Operations**: Memantau automasi dokumen masuk dari Yango (GR DC, Stock Transfer DC-DS, In-Transit Handover) dan menangani antrean transaksi middleware.
+4. **SOP Tim Finance & Accounting**: Mengelola penagihan piutang Blibli (settlement), penerbitan Credit Note retur, pencatatan beban kerugian selisih opname / barang rusak (Scrap), serta transaksi dapur (*Kitchen Transaction*).
+
+---
+
+## 3. PANDUAN 21 LANGKAH INTEGRASI TERPADU (END-TO-END)
 
 ```
-[FASE 0: SETUP & MASTER DATA]
-  0.1 Registrasi Vendor ──► 0.2 Master Produk & SKU ──► 0.3 Virtual In-Transit ──► 0.4 Pricelist Promo
-                                                                                         │
-[FASE 1: PENGADAAN & PENERIMAAN DC]                                                      ▼
-  1.1 Purchase Order (PO) ──► 1.2 Goods Receipt (GR di DC) ──► [Opsi: 1.3 PO Return jika Cacat]
-                                           │
-[FASE 2: DISTRIBUSI DC KE TOKO (DS)]       ▼
-  2.1 Internal Transfer (DC/Stock ──► DS/Stock)
+[FASE A: MASTER DATA & PROCUREMENT DI ODOO]
+  Step 1a & 1b: Catalog & Pricing Creation (Odoo SSOT ──► Blibli & Yango)
+  Step 2 & 3  : Supplier Registration & PO Creation (Odoo ──► Yango DC)
                                │
-[FASE 3: ORDER BLIBLI & HANDOVER KURIR]  ▼
-  3.1 Auto-Create SO ──► 3.2 Picking/Packing ──► 3.3 Handover Kurir (DS/Stock ──► Blibli In-Transit)
-                                                           │
-[FASE 4: PENYELESAIAN PENGIRIMAN]                          ▼
-  4.1 Kurir "Delivered" ──► 4.2 Auto-Cut Final Stok (Blibli In-Transit ──► Partner Locations/Customers)
+[FASE B: LOGISTIK FISIK DI YANGO DC]
+  Step 4      : Staf DC scan bongkar muat di Yango Mobile ──► Odoo GR Validated (WH/IN)
+  Step 11     : Transfer DC ke Toko (DS) di Yango Mobile ──► Odoo Internal Transfer Validated
+  [Opsi Cacat]: Step 13 & 14 PO Return di Yango ──► Odoo PO Return & Vendor Credit Note
                                │
-[FASE 5: FLOW PENGECUALIAN / EXCEPTION]
-  ├── 5.1 Pembatalan Pesanan (Sales Cancellation: Pre-Shipment & In-Transit)
-  ├── 5.2 Retur Penjualan Pelanggan (Sales Return, QC Karantina & Refund)
-  └── 5.3 Rekonsiliasi & Kontrol Stok Toko (Daily Stock Opname & Scrap Kerusakan)
+[FASE C: ORDER FULFILLMENT BLIBLI]
+  Step 5      : Sinkronisasi Stok Siap Jual (Odoo ──► Blibli)
+  Step 6      : Pesanan Blibli Masuk ──► Odoo Auto Sales Order & Reservasi Stok Toko
+  Step 9      : Kru toko serahkan paket ke kurir via Yango Mobile ──► Odoo pindah ke In-Transit
+  Step 10     : Kurir update Delivered ──► Odoo potong In-Transit ke Customer & terbit Invoice/HPP
+                               │
+[FASE D: SIKLUS RETUR, PEMBATALAN & KONTROL TOKO]
+  Step 15     : Customer Cancel sebelum kirim ──► Odoo Cancel SO & Unreserve Stok
+  Step 16 & 17: Failed to Fulfill / Logistic Cancel ──► Odoo Cancel SO & Pelepasan Reservasi
+  Step 18     : Kurir gagal antar (Delivery Fail) ──► Yango scan balik ──► Odoo In-Transit ke Toko
+  Step 19 & 20: Retur Pelanggan (Customer Return) ──► Yango scan QC ──► Odoo Restock/Scrap & Credit Note
+  Step 12 & 21: Stock Opname Toko & Kitchen Transaction ──► Odoo catat Beban Kerugian / HPP Dapur
 ```
 
 ---
 
-## FASE 0: SETUP & MASTER DATA (PREREQUISITE)
+### FASE A: MASTER DATA & PROCUREMENT (OPERASI DI ODOO)
 
-### Langkah 0.1: Registrasi Pemasok Resmi (Vendor Registration)
-- **Menu**: `Purchase > Orders > Vendors`
-- **Langkah Operasi**:
-  1. Klik **New**.
-  2. Pilih **Company**.
-  3. Isi **Name**: `PT Supplier Utama Indonesia`.
-  4. Isi **Address**, **Phone**, **Email**, dan **Tax ID (NPWP)**.
-  5. Tab **Sales & Purchase**: Set **Payment Terms** = `30 Days`.
-  6. Tab **Invoicing**: Masukkan detail rekening bank pemasok.
-  7. Klik **Save**.
-- **Expected Result (Hasil yang Diharapkan)**:
-  - Kontak tersimpan dengan label "Vendor" aktif.
-  - Form menampilkan smart button di kanan atas: **Purchases (0)**, **On-time Delivery Rate (100%)**, dan **Partner Ledger**.
+#### Step 1a & 1b: Catalog Creation, SKU & Pricing/Promo Management (SSOT)
+- **Pelaksana**: Tim Master Data & Marketplace Admin di Odoo.
+- **Menu Odoo**: `Sales > Products > Products` & `Sales > Products > Pricelists`.
+- **Langkah Operasional**:
+  1. Buat produk baru bertipe wajib **Storable Product**.
+  2. Masukkan **Internal Reference (SKU)**: e.g. `KOP-ARA-250` (Wajib sama persis dengan Merchant SKU Blibli & Yango).
+  3. Masukkan Barcode EAN-13, berat kemasan (**Weight**), dan harga normal (**Sales Price**).
+  4. Di menu Pricelist, tentukan harga promo Blibli (misal Rp 85.000) dan tanggal berlakunya.
+- **Expected Result di Odoo**:
+  - Master produk tersimpan. Middleware otomatis mengirim payload SKU dan harga ke Yango WMS dan Blibli Seller Center.
 
----
-
-### Langkah 0.2: Master Produk, SKU & Barcode (Single Source of Truth)
-- **Menu**: `Sales > Products > Products` (atau `Inventory > Products > Products`)
-- **Langkah Operasi**:
-  1. Klik **New**.
-  2. Isi tab **General Information**:
-     - **Product Name**: `Kopi Arabika Specialty 250g`
-     - **Product Type**: Wajib pilih **Storable Product** (Best Practice Odoo agar kuantitas stok terlacak).
-     - **Internal Reference (SKU)**: `KOP-ARA-250` *(Wajib identik dengan Merchant SKU di Blibli)*.
-     - **Barcode**: Masukkan 13 digit EAN barcode (misal: `8991234567890`).
-     - **Sales Price**: Rp 95.000 (Harga jual normal SRP).
-     - **Customer Taxes**: PPN 11%.
-     - **Cost**: Rp 55.000 (HPP acuan).
-  3. Tab **Inventory**:
-     - **Tracking**: Pilih `By Unique Serial Number` / `By Lots` (jika ada kadaluarsa) atau `No Tracking`.
-     - **Weight**: `0.28 kg` (termasuk berat kemasan pengiriman).
-  4. Tab **Purchase**: Klik **Add a line**, pilih vendor `PT Supplier Utama Indonesia`, masukkan **Price** = Rp 55.000.
-  5. Klik **Save**.
-- **Expected Result (Hasil yang Diharapkan)**:
-  - Smart button di kanan atas menampilkan:
-    - **On Hand**: `0.00 Units` (warna hitam/netral).
-    - **Forecasted**: `0.00 Units`.
-  - Produk siap digunakan di seluruh modul (Purchase, Inventory, Sales).
+#### Step 2 & 3: Registrasi Pemasok & Rilis Purchase Order (PO)
+- **Pelaksana**: Tim Procurement di Odoo.
+- **Menu Odoo**: `Purchase > Orders > Requests for Quotation`.
+- **Langkah Operasional**:
+  1. Pilih Vendor terdaftar, tentukan **Deliver To**: `DC/Receipts`.
+  2. Tambahkan baris produk: `KOP-ARA-250`, Quantity = `500` Pcs @ Rp 55.000.
+  3. Klik tombol **Confirm Order**.
+- **Expected Result di Odoo**:
+  - Status berubah menjadi **Purchase Order**.
+  - Smart button `Receipt (1)` muncul. Dokumen penerimaan berstatus *Ready* menanti konfirmasi fisik dari Yango DC.
+  - Middleware otomatis mereplikasi data PO ini ke Yango WMS DC agar staf gudang tahu ada 500 pcs barang yang akan tiba.
 
 ---
 
-### Langkah 0.3: Konfigurasi Lokasi Virtual Kurir ("Blibli In-Transit")
-- **Menu**: `Inventory > Configuration > Locations`
-- **Langkah Operasi**:
-  *(Pastikan Settings > Storage Locations & Multi-Step Routes sudah dicentang)*
-  1. Klik **New**.
-  2. **Location Name**: `Blibli In-Transit`
-  3. **Parent Location**: `Virtual Locations`
-  4. **Location Type**: Pilih **Transit Location** (atau **Internal Location** jika ingin nilai persediaan tetap masuk di neraca balance sheet hingga status Delivered).
-  5. Klik **Save**.
-- **Expected Result (Hasil yang Diharapkan)**:
-  - Tercipta lokasi virtual dengan hirarki path: `Virtual Locations/Blibli In-Transit`.
-  - Lokasi ini siap dipilih sebagai tujuan pengeluaran barang saat kurir Blibli melakukan pick-up.
+### FASE B: INBOUND DC & DISTRIBUSI TOKO (EKSEKUSI DI YANGO MOBILE)
+
+#### Step 4: Goods Receipt (GR Creation) di DC
+- **Pelaksana**: Staf Gudang Pusat menggunakan **Yango Mobile**.
+- **Aksi Lapangan**:
+  - Truk vendor tiba di DC. Staf membuka aplikasi Yango Mobile, memilih nomor PO terkait, scan barcode produk, dan memverifikasi kuantitas fisik yang diterima (500 pcs).
+- **Respon Otomatis di Odoo 19**:
+  - Middleware menangkap status `GR_COMPLETED` dari Yango.
+  - Dokumen `WH/IN/xxxxx` di Odoo otomatis tervalidasi menjadi **Done**.
+  - Stok `DC/Stock` bertambah +500 unit. Jurnal persediaan bertambah di Buku Besar (General Ledger). Kolom *Received* di PO terisi 500.00.
+
+#### Step 11: Transfer Stok DC ke Toko Distribusi (DC to DS / DS to DS)
+- **Pelaksana**: Staf Gudang DC & Kru Toko menggunakan **Yango Mobile**.
+- **Aksi Lapangan**:
+  - Yango menginstruksikan pengiriman 100 pcs kopi dari DC ke Toko Jakarta Selatan (`DS01`).
+  - Staf DC scan keluar (*pick & dispatch*) di Yango Mobile. Kru toko scan terima (*putaway*) di Yango Mobile saat armada tiba.
+- **Respon Otomatis di Odoo 19**:
+  - Middleware mengirim data mutasi transfer fisik Yango ke Odoo.
+  - Odoo otomatis membuat dan memvalidasi dokumen **Internal Transfer**:
+    - Source: `DC/Stock` (berkurang -100).
+    - Destination: `DS01/Stock` (bertambah +100).
+
+#### [Kasus Pengecualian] Step 13 & 14: Retur Pembelian ke Supplier (PO Return)
+- **Aksi**: Staf DC mendeteksi 20 unit rusak saat scan di Yango Mobile ➔ status reject dilaporkan.
+- **Respon di Odoo**:
+  - Odoo menerbitkan dokumen `WH/RET/xxxxx` dari `DC/Stock` ke `Partner Locations/Vendors`.
+  - Stok DC berkurang -20 unit.
+  - Finance Odoo menerima trigger untuk membuat **Vendor Credit Note** memotong tagihan pemasok.
 
 ---
 
-### Langkah 0.4: Penentuan Harga Jual & Promo Blibli (Pricelists)
-- **Menu**: `Sales > Products > Pricelists`
-- **Langkah Operasi**:
-  1. Pilih pricelist khusus: `Pricelist Blibli Official Store` (atau buat baru jika belum ada).
-  2. Pada tab **Price Rules**, klik **Add a line**:
-     - **Apply On**: `Product` -> pilih `Kopi Arabika Specialty 250g`.
-     - **Min. Quantity**: `1`.
-     - **Computation**: Pilih **Fixed Price** -> Masukkan `Rp 85.000` (Harga promo diskon).
-     - **Validity**: Tentukan **Start Date** dan **End Date** kampanye Blibli.
-  3. Klik **Save & Close**, lalu klik **Save** pada form pricelist.
-- **Expected Result (Hasil yang Diharapkan)**:
-  - Di dalam tab pricelist muncul baris aktif: `KOP-ARA-250 | Fixed Price: 85,000 | Active Dates`.
-  - API connector dapat menarik data harga promo ini untuk otomatis mengupdate harga listing di Blibli.
+### FASE C: PEMENUHAN PESANAN BLIBLI & IN-TRANSIT (OMNICHANNEL)
+
+#### Step 5: Sinkronisasi Saldo Stok Siap Jual (Stock Update)
+- Odoo menghitung stok bebas jual (*Free to Use = On Hand - Reserved*). Middleware secara periodik mengirim angka stok terupdate ke Blibli Seller Center untuk mencegah *overselling*.
+
+#### Step 6: Pesanan Blibli Masuk (Customer Order & Sales Creation)
+- **Pemicu**: Pembeli membeli 2 pcs kopi di Blibli.
+- **Respon di Yango & Odoo**:
+  - Blibli mengirim order ke Yango untuk ditugaskan ke kru Toko Jakarta Selatan.
+  - Middleware secara bersamaan membuat dokumen **Sales Order** di Odoo:
+    - Customer: `Blibli Marketplace` (Alamat pembeli masuk ke field Shipping Notes/AWB).
+    - Order Lines: `KOP-ARA-250` x 2 pcs @ Rp 85.000.
+    - Warehouse: `DS Jakarta Selatan`.
+- **Expected Result di Odoo**:
+  - Status SO menjadi **Sales Order (Confirmed)**.
+  - Stok di `DS01/Stock` otomatis berstatus **Reserved: 2 pcs**, sehingga *Free to Use* menjadi 98 pcs.
+
+#### Step 9: Serah Terima ke Kurir Blibli (Order In Delivery ➔ Move to In-Transit)
+- **Pelaksana**: Kru Toko menggunakan **Yango Mobile**.
+- **Aksi Lapangan**:
+  - Kru toko mengambil 2 unit kopi di rak, packing, dan menempelkan resi AWB Blibli.
+  - Saat kurir Blibli datang mengambil paket, kru toko scan serah terima (*handover*) di Yango Mobile.
+- **Respon Otomatis di Odoo 19**:
+  - Yango mengirim event `ORDER_IN_DELIVERY`.
+  - Odoo memvalidasi pengeluaran tahap 1:
+    - Source: `DS01/Stock` (berkurang riil -2, rak fisik toko bersih).
+    - Destination: `Virtual Locations/Blibli In-Transit` (bertambah +2).
+  - *Manfaat*: Toko fisik bebas dari selisih audit, sementara unit tetap terpantau sedang berada di perjalanan.
+
+#### Step 10: Kurir Sukses Kirim (Order Delivered ➔ GI Stock from In-Transit)
+- **Pemicu**: Kurir Blibli menyelesaikan pengantaran ke rumah pembeli. Status di Blibli menjadi **Delivered**.
+- **Respon Otomatis di Odoo 19**:
+  - Middleware memicu transfer tahap 2 di Odoo:
+    - Source: `Virtual Locations/Blibli In-Transit` (berkurang -2, saldo kembali 0).
+    - Destination: `Partner Locations/Customers`.
+  - Odoo otomatis mengaktifkan pembuatan Faktur Penjualan (**Customer Invoice**) ke akun piutang *Blibli Marketplace* dan membukukan Harga Pokok Penjualan (HPP/COGS) di General Ledger.
 
 ---
 
-## FASE 1: PENGADAAN & PENERIMAAN GUDANG PUSAT (PROCUREMENT TO DC)
+### FASE D: PEMBATALAN, RETUR & KONTROL STOK TOKO
 
-### Langkah 1.1: Pembuatan & Konfirmasi Purchase Order (PO)
-- **Menu**: `Purchase > Orders > Requests for Quotation`
-- **Langkah Operasi**:
-  1. Klik **New**.
-  2. **Vendor**: `PT Supplier Utama Indonesia`.
-  3. **Deliver To**: Pastikan mengarah ke `DC/Receipts` (Gudang Pusat).
-  4. Tab **Products** > **Add a product**:
-     - Produk: `Kopi Arabika Specialty 250g`.
-     - **Quantity**: `500` Pcs.
-     - **Unit Price**: Rp 55.000.
-  5. Klik tombol **Confirm Order**.
-- **Expected Result (Hasil yang Diharapkan)**:
-  - Status dokumen berubah dari **RFQ** menjadi **Purchase Order**.
-  - Muncul smart button baru di pojok kanan atas PO: **Receipt (1)**.
-  - Pada master produk, smart button **Forecasted** berubah menjadi `500 Units` (meskipun On Hand masih `0 Units`).
+#### Step 15: Pembatalan oleh Pembeli (Customer Order Cancel)
+- Jika pembeli membatalkan pesanan sebelum kurir pick-up:
+  - Yango membatalkan tugas picking di toko.
+  - Odoo mengubah status SO menjadi **Cancelled**.
+  - Reservasi 2 unit di toko langsung dilepas (**Unreserved**), saldo *Free to Use* kembali utuh menjadi 100 pcs.
 
----
+#### Step 16 & 17: Gagal Pemenuhan Toko / Pembatalan Ekspedisi (Failed to Fulfill / Logistic Cancel)
+- Jika barang di toko ternyata rusak atau kurir tidak kunjung datang:
+  - Yango memicu status pembatalan ke Blibli.
+  - Odoo membatalkan Sales Order dan mengembalikan alokasi reservasi stok.
 
-### Langkah 1.2: Penerimaan Fisik di DC (Goods Receipt - GR / WH/IN)
-- **Menu**: Klik smart button **Receipt** pada PO, atau navigasi ke `Inventory > Operations > Transfers` cari dokumen receipt terkait (`WH/IN/xxxxx`).
-- **Langkah Operasi**:
-  1. Buka dokumen receipt yang berstatus **Ready**.
-  2. Tim gudang membongkar muat dan menghitung fisik barang yang tiba:
-     - Jika 500 unit tiba utuh: Klik tombol **Set Quantities** (kolom **Done** otomatis terisi `500`).
-     - Jika tiba sebagian (misal baru datang 300 unit): Ketik manual `300` pada kolom **Done**.
-  3. Klik tombol **Validate**.
-  4. *(Jika parsial)*: Muncul pop-up dialog **Create Backorder?**:
-     - Pilih **Create Backorder** jika 200 unit sisanya akan dikirim menyusul.
-- **Expected Result (Hasil yang Diharapkan)**:
-  - Status dokumen transfer berubah menjadi **Done** (badge hijau).
-  - Smart button master produk terupdate seketika:
-    - **On Hand**: bertambah menjadi `500 Units` (atau `300 Units` jika parsial).
-    - Lokasi stok tercatat jelas: `DC/Stock` = 500 Units.
-  - Di PO, kolom **Received Quantity** terisi `500.00`.
+#### Step 18: Penanganan Gagal Antar (GR Delivery Fail)
+- Jika kurir gagal menemukan alamat rumah pembeli dan membawa paket kembali ke toko:
+  - Kru toko scan paket retur gagal kirim di **Yango Mobile**.
+  - Odoo otomatis memindahkan stok dari `Virtual Locations/Blibli In-Transit` kembali ke rak fisik `DS01/Stock`. Saldo In-Transit kembali 0 dan toko tidak rugi barang.
+
+#### Step 19 & 20: Retur Penjualan oleh Pembeli (Customer Return & GR QC)
+- Pembeli mengajukan komplain retur di Blibli dan mengirim barang kembali ke toko:
+  1. Paket tiba di toko, kru toko scan penerimaan retur di **Yango Mobile** dan melakukan Quality Control (QC).
+  2. **Jika Lolos QC (Barang Bagus)**: Yango memasukkan barang ke rak simpan. Odoo mencatat penambahan stok di `DS01/Stock`.
+  3. **Jika Rusak / Cacat**: Yango menandai unit sebagai reject/damaged. Odoo otomatis memindahkan unit ke `Virtual Locations/Scrap`.
+  4. Bagian Finance di Odoo menerbitkan **Credit Note** pada invoice Blibli untuk memotong piutang penjualan.
+
+#### Step 12 & 21: Stock Opname Harian Toko & Transaksi Dapur (Stock Adjustment & Kitchen)
+- **Stock Adjustment (Step 12)**:
+  - Kru toko menghitung fisik harian via Yango Mobile. Jika ada selisih (misal -1 pcs hilang), Yango mengirim event adjustment.
+  - Odoo otomatis membukukan selisih ke akun beban kerugian inventaris (**Inventory Loss**).
+- **Kitchen Transaction (Step 21)**:
+  - Untuk toko retail yang memiliki fasilitas kitchen/food preparation (memakai bahan baku seperti susu/sirup/kopi untuk disajikan):
+  - Penggunaan bahan dicatat di Yango Mobile ➔ Odoo otomatis membukukan pemotongan stok bahan baku ke akun biaya operasional dapur (**Kitchen COGS / Operational Expense**).
 
 ---
 
-### [Opsi Alur Cabang] Langkah 1.3: Retur Pembelian ke Vendor (PO Return)
-*Gunakan langkah ini hanya jika saat pemeriksaan di DC ditemukan barang cacat/rusak.*
-- **Menu**: Dari dokumen receipt `WH/IN/xxxxx` yang sudah **Done**, klik tombol **Return** di pojok kiri atas.
-- **Langkah Operasi**:
-  1. Pada pop-up **Reverse Transfer**:
-     - Masukkan kuantitas barang reject (misal: `20` unit).
-     - **Return Location**: `Partner Locations/Vendors`.
-  2. Klik tombol **Return**.
-  3. Sistem membuat dokumen transfer pengeluaran baru (`WH/RET/xxxxx`).
-  4. Buka dokumen tersebut, isi kolom **Done** = `20`, lalu klik **Validate**.
-- **Expected Result (Hasil yang Diharapkan)**:
-  - Status retur menjadi **Done**.
-  - Stok `DC/Stock` langsung berkurang dari `500 Units` menjadi `480 Units`.
-  - Di PO, kuantitas received berkurang dan tim finance dapat membuat **Credit Note** pada vendor bill.
+## 4. TUGAS RUTIN HARIAN TIM ODOO (MONITORING & REKONSILIASI)
 
----
-
-## FASE 2: DISTRIBUSI STOK DC KE TOKO DISTRIBUSI (DC TO DS TRANSFER)
-
-### Langkah 2.1: Transfer Stok DC ke Toko Distribusi (DS)
-- **Menu**: `Inventory > Operations > Transfers`
-- **Langkah Operasi**:
-  1. Klik tombol **New**.
-  2. **Operation Type**: Pilih `DC: Internal Transfers` (atau `DC to DS Transfers`).
-  3. **Source Location**: `DC/Stock`.
-  4. **Destination Location**: `DS01/Stock` (Toko Distribusi Jakarta Selatan).
-  5. Tab **Products** > **Add a line**:
-     - Produk: `Kopi Arabika Specialty 250g`.
-     - **Demand**: `100` Pcs.
-  6. Klik **Mark as Todo**:
-     - Status berubah menjadi **Ready** dan stok 100 unit otomatis terkunci (*Reserved*) di `DC/Stock`.
-  7. Barang fisik dinaikkan ke armada pengiriman toko:
-     - Klik **Set Quantities** atau isi kolom **Done** = `100`.
-     - Klik tombol **Validate**.
-- **Expected Result (Hasil yang Diharapkan)**:
-  - Status transfer menjadi **Done**.
-  - Buka menu `Inventory > Reporting > Stock`:
-    - `DC/Stock`: Berkurang menjadi `380 Units`.
-    - `DS01/Stock`: Bertambah menjadi `100 Units`.
-  - Toko Distribusi `DS01` kini resmi memiliki 100 unit stok yang siap melayani pesanan Blibli.
-
----
-
-## FASE 3: OMNICHANNEL SALES BLIBLI & HANDOVER KURIR
-
-### Langkah 3.1: Pembuatan Sales Order Otomatis dari Blibli
-- **Mekanisme**: Pelanggan membeli 2 pcs produk di Blibli. Webhook integrasi membuat Sales Order secara otomatis di Odoo.
-- **Menu**: `Sales > Orders > Orders`
-- **Tampilan Dokumen di Odoo**:
-  1. Terbit dokumen baru bernama `SO-BLI-98421`.
-  2. **Customer**: `Budi Santoso` (atau *Blibli Guest Customer*).
-  3. **Customer Reference**: `BLI-ORDER-20260902-001`.
-  4. **Warehouse**: Terpetakan otomatis ke `Toko DS01` (sesuai toko pemenuhan terdekat).
-  5. **Order Lines**:
-     - Produk: `Kopi Arabika Specialty 250g`.
-     - **Quantity**: `2.00` Pcs.
-     - **Unit Price**: `Rp 85.000` (mengikuti Pricelist Promo Blibli Fase 0.4).
-- **Expected Result (Hasil yang Diharapkan)**:
-  - Status dokumen otomatis **Sales Order** (Confirmed).
-  - Muncul smart button **Delivery (1)** di kanan atas SO.
-  - Pada stok `DS01/Stock`:
-    - **On Hand**: `100 Units`.
-    - **Reserved**: `2 Units`.
-    - **Free to Use**: `98 Units`. *(Mencegah overselling secara real-time!)*
-
----
-
-### Langkah 3.2: Picking & Packing di Toko Distribusi
-- **Menu**: Buka smart button **Delivery** pada SO (dokumen `DS01/OUT/xxxxx`).
-- **Langkah Operasi**:
-  1. Status dokumen pengiriman adalah **Ready**.
-  2. Kolom **Demand**: `2`, **Reserved**: `2`.
-  3. Petugas toko mengambil 2 pcs kopi dari rak toko, melakukan packing, dan menempelkan cetakan shipping label / resi AWB Blibli.
-  4. Isi kolom **Done** = `2` (atau scan barcode produk).
-- **Expected Result (Hasil yang Diharapkan)**:
-  - Kolom **Done** berubah menjadi warna hijau bernilai `2`. Paket berada di meja ekspedisi (*ready to ship*).
-
----
-
-### Langkah 3.3: Handover ke Kurir Blibli (Memindahkan ke Lokasi Virtual In-Transit)
-*Best Practice Odoo: Agar barang yang dibawa kurir tidak lagi ada di rak toko, tapi belum dianggap "Delivered" sampai pembeli terima.*
-- **Langkah Operasi**:
-  1. Kurir logistik Blibli tiba di toko untuk pick-up paket.
-  2. Di dokumen pengiriman Odoo, ubah **Destination Location** menjadi `Virtual Locations/Blibli In-Transit` (atau sistem otomatis menjalankan alur *2-Step Delivery Route: Store -> In-Transit -> Customer*).
-  3. Klik tombol **Validate**.
-- **Expected Result (Hasil yang Diharapkan)**:
-  - Status dokumen pengiriman tahap 1 menjadi **Done**.
-  - **Dampak Posisi Stok**:
-    - `DS01/Stock`: Resmi berkurang dari `100` menjadi `98 Units`.
-    - `Virtual Locations/Blibli In-Transit`: Bertambah `+2 Units`.
-  - **Audit Stok**: Toko bebas dari risiko audit selisih fisik, sementara manajemen perusahaan tahu ada 2 unit yang sedang berada di jalan (*In-Transit*).
-
----
-
-## FASE 4: PENYELESAIAN PENGIRIMAN (DELIVERY COMPLETION)
-
-### Langkah 4.1: Notifikasi Kurir Sukses Kirim ("Delivered")
-- **Pemicu**: Kurir Blibli menyelesaikan pengantaran ke rumah pembeli. Status pesanan di Seller Center Blibli berubah menjadi **Delivered / Selesai**.
-
-### Langkah 4.2: Pemotongan Stok Final ke Customer Location
-- **Langkah Operasi**:
-  1. Webhook Blibli memicu validasi tahap akhir di Odoo (atau diproses via menu `Inventory > Operations > Transfers` filter lokasi sumber `Blibli In-Transit`).
-  2. Dokumen transfer tahap 2 tervalidasi:
-     - **Source Location**: `Virtual Locations/Blibli In-Transit`.
-     - **Destination Location**: `Partner Locations/Customers`.
-     - **Quantity**: `2.00` Pcs.
-  3. Klik **Validate**.
-- **Expected Result (Hasil yang Diharapkan)**:
-  - Saldo di `Virtual Locations/Blibli In-Transit` kembali berkurang `-2 Units` (menjadi `0`).
-  - Barang resmi berada di `Partner Locations/Customers`.
-  - Pada Sales Order, tombol **Create Invoice** aktif. Faktur penjualan terbit dan COGS/HPP persediaan terjual terekam otomatis di General Ledger.
-
----
-
-## FASE 5: SKENARIO DEVIASI & EXCEPTION (KASUS KHUSUS)
-
----
-
-### SKENARIO 5.1: PEMBATALAN PESANAN BLIBLI (SALES CANCELLATION)
-
-Terdapat 2 kemungkinan waktu pembatalan:
-
-#### Kasus A: Pembatalan SEBELUM Handover Kurir (Status: Ready / Waiting)
-1. **Langkah Operasi**:
-   - Buka Sales Order terkait di `Sales > Orders > Orders`.
-   - Klik tombol **Cancel** pada Sales Order.
-2. **Expected Result**:
-   - Status SO berubah menjadi **Cancelled**.
-   - Dokumen delivery order otomatis berstatus **Cancelled**.
-   - Stok 2 unit yang sebelumnya terkunci langsung dilepas (**Unreserved**).
-   - Nilai **Free to Use** di `DS01/Stock` langsung kembali naik dari `98` menjadi `100 Units`.
-
-#### Kasus B: Pembatalan SETELAH Handover Kurir (Barang Gagal Kirim / Kurir Balik Kucing)
-1. **Langkah Operasi**:
-   - Kurir mengembalikan paket ke toko karena alamat pembeli tidak ditemukan (*Failed Delivery*).
-   - Masuk ke menu `Inventory > Operations > Transfers` > klik **New**:
-     - **Source Location**: `Virtual Locations/Blibli In-Transit`.
-     - **Destination Location**: `DS01/Stock`.
-     - **Product**: `Kopi Arabika Specialty 250g`, **Done**: `2`.
-   - Klik **Validate**.
-   - Buka SO asli lalu klik **Cancel**.
-2. **Expected Result**:
-   - Stok `Virtual Locations/Blibli In-Transit` berkurang `-2` (kembali 0).
-   - Stok fisik di rak toko `DS01/Stock` bertambah kembali `+2` menjadi `100 Units`.
-   - Tidak ada selisih stok finansial.
-
----
-
-### SKENARIO 5.2: RETUR PENJUALAN OLEH PELANGGAN (SALES RETURN & QC)
-
-Pembeli menerima barang namun mengajukan retur (misal kemasan penyok atau ingin tukar).
-
-#### Langkah Operasi:
-1. Buka dokumen Delivery Order awal di SO yang sudah **Done**.
-2. Klik tombol **Return** di kiri atas.
-3. Pada pop-up **Reverse Transfer**:
-   - Masukkan kuantitas retur = `1`.
-   - **Return Location**: Arahkan ke lokasi karantina pemeriksaan toko: `DS01/Input` (atau `DS01/Stock`).
-   - Klik tombol **Return**.
-4. Terbentuk dokumen penerimaan barang retur (`DS01/RET/xxxxx`).
-5. **Pemeriksaan Kualitas (Quality Control)**:
-   - **Kondisi A (Barang Masih Segel & Bagus)**:
-     - Isi kolom **Done** = `1`, lalu klik **Validate**.
-     - **Expected Result**: Stok `DS01/Stock` bertambah kembali dan siap dijual ke pembeli lain.
-   - **Kondisi B (Barang Rusak / Bocor / Cacat)**:
-     - Validasi penerimaan retur ke toko.
-     - Lanjutkan segera dengan proses **Scrap** (Langkah 5.3.B).
-6. **Refund Dana Pelanggan**:
-   - Buka Invoice pada Sales Order, klik **Add Credit Note**.
-   - Isi alasan: *"Retur Produk dari Blibli"*.
-   - Klik **Confirm** untuk memotong saldo piutang dan mengembalikan dana via Blibli settlement.
-
----
-
-### SKENARIO 5.3: PENYESUAIAN STOK TOKO (STOCK ADJUSTMENT & SCRAP)
-
-#### A. Rekonsiliasi Stock Opname Harian Toko (Cycle Count / Selisih):
-- **Menu**: `Inventory > Operations > Physical Inventory`
-- **Langkah Operasi**:
-  1. Filter lokasi: `DS01/Stock`.
-  2. Cari produk `Kopi Arabika Specialty 250g`.
-  3. Sistem menampilkan kolom **On Hand Quantity** = `98`.
-  4. Staf menghitung fisik di rak ternyata hanya ada `97` (hilang 1 pcs).
-  5. Masukkan angka `97` pada kolom **Counted Quantity**.
-  6. Kolom **Difference** otomatis menunjukkan `-1.00`.
-  7. Klik tombol **Apply**.
-- **Expected Result (Hasil yang Diharapkan)**:
-  - Nilai On Hand di `DS01/Stock` resmi menjadi `97 Units`.
-  - Mutasi selisih `-1` unit dibukukan otomatis ke akun biaya selisih inventaris (`Virtual Locations/Inventory adjustment` / Loss Account).
-
-#### B. Scrap Produk Rusak / Kadaluarsa di Toko:
-- **Menu**: `Inventory > Operations > Scrap`
-- **Langkah Operasi**:
-  1. Klik **New**.
-  2. **Product**: `Kopi Arabika Specialty 250g`.
-  3. **Quantity**: `1.00`.
-  4. **Source Location**: `DS01/Stock`.
-  5. **Scrap Location**: `Virtual Locations/Scrap`.
-  6. Klik **Validate**.
-- **Expected Result (Hasil yang Diharapkan)**:
-  - Status dokumen Scrap menjadi **Done**.
-  - Stok jual di `DS01/Stock` langsung berkurang `-1 Unit` dan dipindahkan ke lokasi sampah/scrap.
-  - Barang rusak dijamin tidak akan pernah teralokasikan untuk pesanan online Blibli berikutnya.
-
----
-
-## RINGKASAN CEK INDIKATOR KEBERHASILAN OPERASIONAL
-
-| Langkah Operasional | Menu Odoo | Status Dokumen Sukses | Indikator Kunci Stok Berhasil |
-|---|---|:---:|---|
-| **0.1 Vendor** | Purchase > Vendors | Saved | Kontak memiliki tag Vendor |
-| **0.2 Master SKU** | Sales > Products | Saved | Type = *Storable Product*, SKU & Barcode terisi |
-| **0.4 Pricelist** | Sales > Pricelists | Active | Tanggal berlaku aktif & harga promo sesuai |
-| **1.1 PO** | Purchase > RfQ | **Purchase Order** | Forecasted bertambah, Smart Button *Receipt (1)* muncul |
-| **1.2 Goods Receipt** | Inventory > Receipts | **Done** | On Hand di `DC/Stock` bertambah |
-| **1.3 PO Return** | Inventory > Transfers | **Done** | On Hand di `DC/Stock` berkurang, Credit Note vendor terbit |
-| **2.1 Internal Transfer** | Inventory > Transfers | **Done** | `DC/Stock` berkurang, `DS01/Stock` bertambah |
-| **3.1 Auto SO Blibli** | Sales > Orders | **Sale Order** | Stok di DS otomatis *Reserved*, Smart Button *Delivery (1)* |
-| **3.3 Handover Kurir** | Inventory > Transfers | **Done** | `DS01/Stock` berkurang, `Blibli In-Transit` bertambah |
-| **4.2 Delivered Customer** | Inventory > Transfers | **Done** | `Blibli In-Transit` menjadi 0, barang di *Customer Location* |
-| **5.1 Cancel SO** | Sales > Orders | **Cancelled** | Reservasi stok lepas (*Unreserved*), Free to Use kembali |
-| **5.2 Sales Return** | Inventory > Transfers | **Done** | Barang masuk kembali ke toko / QC karantina |
-| **5.3 Stock Adjustment** | Inventory > Physical Inv | **Applied** | On Hand sinkron dengan fisik riil, selisih dibukukan |
-| **5.3 Scrap** | Inventory > Scrap | **Done** | Barang rusak berpindah ke *Virtual Locations/Scrap* |
+1. **Pukul 09:00 (Pagi)**:
+   - Cek dashboard Middleware: Pastikan antrean pesan sinkronisasi PO dan GR Yango berstatus *Zero Errors*.
+   - Cek PO masuk: Pastikan PO yang sudah divalidasi GR-nya di Yango telah berstatus *Received* di Odoo.
+2. **Pukul 14:00 (Siang)**:
+   - Monitor SO Blibli: Pastikan pesanan masuk dari Blibli terbit dengan benar di Odoo tanpa ada SKU yang tidak terpetakan (*Unmapped SKU*).
+3. **Pukul 18:00 (Sore)**:
+   - Rekonsiliasi Saldo `Virtual Locations/Blibli In-Transit`: Pastikan nomor resi yang sudah berstatus *Delivered* di Blibli telah tuntas memotong saldo In-Transit menjadi 0.
+   - Validasi Credit Note dan jurnal Scrap hasil temuan harian toko Yango.
