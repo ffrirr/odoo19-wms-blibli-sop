@@ -2,10 +2,18 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>SOP Odoo 19 ERP — WMS Multi-Warehouse, Procurement & Blibli Omnichannel</title>
   <meta name="description" content="Standar Operasional Prosedur (SOP) Odoo 19 ERP: WMS DC & DS, Procurement, Kontrol Stok & Integrasi Marketplace Blibli">
   
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="theme-color" content="#714B67">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Odoo 19 SOP">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
@@ -39,11 +47,17 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased flex flex-col min-h-screen">
 
+  <!-- OFFLINE STATUS BANNER -->
+  <div id="offlineBanner" class="hidden bg-amber-500 text-slate-900 font-semibold text-xs py-2 px-4 text-center shadow-inner flex items-center justify-center gap-2">
+    <i class="fa-solid fa-plane-slash"></i>
+    <span><strong>Mode Offline Aktif:</strong> Seluruh panduan SOP Odoo 19 tersimpan lokal dan siap digunakan tanpa koneksi internet.</span>
+  </div>
+
   <!-- TOP NAVBAR -->
   <header class="bg-odoo-purple text-white shadow-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <span class="bg-white text-odoo-purple font-black px-2.5 py-1 rounded text-base shadow-sm">ODOO 19</span>
+        <img src="icons/icon-192.png" alt="Odoo 19 Logo" class="w-9 h-9 rounded-lg shadow-sm">
         <div>
           <h1 class="text-base sm:text-lg font-bold tracking-tight">Odoo 19 SOP Portal</h1>
           <p class="text-xs text-purple-200">WMS DC & DS • Procurement • Omnichannel Blibli</p>
@@ -51,14 +65,19 @@
       </div>
 
       <div class="flex items-center space-x-2 sm:space-x-3">
+        <!-- PWA Install Button (Hidden until prompt available) -->
+        <button id="pwaInstallBtn" class="hidden no-print text-xs bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold px-3 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1.5">
+          <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Install PWA</span>
+        </button>
+
         <a href="PANDUAN_OPERASIONAL_ODOO_WMS_SALES_PURCHASE.md" target="_blank" class="no-print text-xs bg-white/10 hover:bg-white/20 text-white font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1">
           <i class="fa-solid fa-file-code"></i> <span class="hidden sm:inline">Raw Markdown</span>
         </a>
         <button onclick="window.print()" class="no-print text-xs bg-white text-odoo-purple font-semibold px-3 py-1.5 rounded-lg shadow-sm hover:bg-purple-50 transition flex items-center gap-1.5">
-          <i class="fa-solid fa-print"></i> <span>Cetak / PDF</span>
+          <i class="fa-solid fa-print"></i> <span>Cetak</span>
         </button>
         <span class="text-xs bg-emerald-500 text-white font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
-          <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Odoo 19 Verified
+          <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> PWA Ready
         </span>
       </div>
     </div>
@@ -114,10 +133,14 @@
           </nav>
         </div>
 
-        <div class="pt-4 border-t border-slate-100">
+        <div class="pt-4 border-t border-slate-100 space-y-2">
           <div class="bg-purple-50 p-3 rounded-lg border border-purple-100 text-xs text-odoo-purple space-y-1">
+            <div class="font-bold flex items-center gap-1"><i class="fa-solid fa-mobile-screen-button"></i> PWA Offline Ready</div>
+            <p class="text-slate-600">Aplikasi web ini otomatis tersimpan di memori perangkat sehingga dapat diakses di area gudang tanpa internet.</p>
+          </div>
+          <div class="bg-slate-100 p-3 rounded-lg text-xs text-slate-700 space-y-1">
             <div class="font-bold flex items-center gap-1"><i class="fa-solid fa-book"></i> Odoo 19 Knowledge</div>
-            <p class="text-slate-600">SOP ini dirancang untuk dapat disematkan langsung di modul <em>Knowledge</em> pada form dokumen Odoo 19.</p>
+            <p class="text-slate-600">Dapat disematkan langsung ke panel samping modul Knowledge di Odoo 19.</p>
           </div>
         </div>
       </div>
@@ -129,10 +152,10 @@
       <!-- HERO BANNER -->
       <section class="bg-gradient-to-r from-odoo-purple to-odoo-teal text-white p-6 sm:p-8 rounded-2xl shadow-sm">
         <div class="max-w-3xl">
-          <span class="bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">Standard Operating Procedure (SOP)</span>
+          <span class="bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">PWA & Offline Enabled</span>
           <h2 class="text-2xl sm:text-3xl font-bold mt-3 mb-2">Panduan Operasional Odoo 19 ERP Terpadu</h2>
           <p class="text-sm text-purple-100 leading-relaxed">
-            Menghubungkan siklus pengadaan (Procurement), penerimaan Gudang Pusat (DC), distribusi ke Toko (DS), penerimaan pesanan Blibli secara otomatis, pelacakan kurir In-Transit, hingga penanganan retur dan penyesuaian stok.
+            Menghubungkan pengadaan barang pusat (DC), suplai ke toko distribusi (DS), penerimaan pesanan otomatis Blibli, pelacakan kurir In-Transit, hingga penanganan retur dan penyesuaian stok.
           </p>
         </div>
       </section>
@@ -453,11 +476,13 @@ graph LR
   <!-- FOOTER -->
   <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
     <div class="max-w-7xl mx-auto px-4">
-      <p>Standar Operasional Prosedur (SOP) Odoo 19 ERP Terpadu • WMS & Omnichannel Marketplace</p>
+      <p>Standar Operasional Prosedur (SOP) Odoo 19 ERP Terpadu • Progressive Web App (PWA)</p>
     </div>
   </footer>
 
+  <!-- JAVASCRIPT: FILTER & PWA REGISTRATION -->
   <script>
+    // Live Search Filter
     function filterSteps() {
       const input = document.getElementById('searchInput').value.toLowerCase();
       const cards = document.querySelectorAll('.step-card');
@@ -466,6 +491,57 @@ graph LR
         card.style.display = text.includes(input) ? 'block' : 'none';
       });
     }
+
+    // PWA Service Worker Registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => console.log('[PWA] Service Worker registered with scope:', reg.scope))
+          .catch((err) => console.error('[PWA] Service Worker registration failed:', err));
+      });
+    }
+
+    // PWA Offline/Online HUD Detection
+    const offlineBanner = document.getElementById('offlineBanner');
+    function updateOnlineStatus() {
+      if (!navigator.onLine) {
+        offlineBanner.classList.remove('hidden');
+      } else {
+        offlineBanner.classList.add('hidden');
+      }
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+
+    // PWA Install Prompt Button Handling
+    let deferredPrompt;
+    const installBtn = document.getElementById('pwaInstallBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (installBtn) {
+        installBtn.classList.remove('hidden');
+      }
+    });
+
+    if (installBtn) {
+      installBtn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log(`[PWA] User install choice: ${outcome}`);
+          deferredPrompt = null;
+          installBtn.classList.add('hidden');
+        }
+      });
+    }
+
+    window.addEventListener('appinstalled', () => {
+      console.log('[PWA] App successfully installed!');
+      if (installBtn) installBtn.classList.add('hidden');
+    });
   </script>
 </body>
 </html>

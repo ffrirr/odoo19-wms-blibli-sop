@@ -1,0 +1,26 @@
+{
+  "name": "SOP Odoo 19 ERP — WMS & Blibli Omnichannel",
+  "short_name": "Odoo 19 SOP",
+  "description": "Standar Operasional Prosedur Odoo 19 ERP: WMS DC & DS, Procurement, Kontrol Stok & Integrasi Blibli",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#714B67",
+  "theme_color": "#714B67",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
